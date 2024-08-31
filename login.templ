@@ -1,21 +1,51 @@
 package main
 
-templ login() {
+const (
+    colorBlack = "black"
+    colorRed = "red"
+    colorGreen = "green"
+)
+
+type coloredMessage struct {
+    colorString string
+    text string
+}
+
+// can pass nil for "no message"
+templ login(cm *coloredMessage) {
     <html>
     <head>
     <title>Login</title>
-    <script src="/assets/htmx.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
+
+    <style>
+    .green {
+        color: limegreen;
+    }
+    .red {
+        color: red;
+    }
+    .black {
+        color: black;
+    }
+    </style>
+    
     </head>
 
-    <body>
+    <body id="loginBody">
     <h1>Login</h1>
-    <form>
-    <label for="loginUsername">Username:</label><br/>
-    <input type="text" id="loginUsername" name="loginUsername"/><br/>
-    <label for="loginPassword">Password:</label><br/>
-    <input type="text" id="loginPassword" name="loginPassword"/><br/>
+    <form hx-post="/login" hx-target="#loginBody">
+    <label for="username">Username:</label><br/>
+    <input type="text" id="username" name="username"/><br/>
+    <label for="password">Password:</label><br/>
+    <input type="password" id="password" name="password"/><br/>
     <input type="submit" value="Submit"/>
     </form>
+    <p>Don't have an account yet? <a href="/register">Register here</a></p>
+    if cm != nil && cm.text != "" && cm.colorString != "" {
+        <p class={ cm.colorString }>{ cm.text }</p>
+    }
+    
     </body>
     
     </html>

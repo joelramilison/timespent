@@ -1,0 +1,32 @@
+package main
+
+templ register() {
+    <html>
+    <head>
+    <title>Register</title>
+    <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
+
+    </head>
+
+    <body>
+    <h1>Register</h1>
+    <form hx-target="#errMsgDiv" hx-post="/users">
+    <label for="username">Username:</label><br/>
+    <input type="text" id="username" name="username"/><br/>
+    <label for="password">Password:</label><br/>
+    <input type="password" id="password" name="password"/><br/>
+    <label for="confirmPassword">Confirm password:</label><br/>
+    <input type="password" id="confirmPassword" name="confirmPassword"/><br/>
+    <label for="timezone">Time zone:</label>
+    <select name="timezone" id="timezone">
+    <option value="germany">Germany</option>
+    </select>
+    <input type="submit" value="Submit"/>
+    </form>
+    <p>Already have an account? <a href="/login">Login here</a></p>
+    
+    <div id="errMsgDiv"></div>
+    </body>
+    
+    </html>
+}
