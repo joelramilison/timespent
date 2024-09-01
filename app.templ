@@ -1,6 +1,6 @@
 package main
 
-templ app() {
+templ app(sessionRunning bool) {
 
     <html>
     <head>
@@ -9,5 +9,32 @@ templ app() {
     <body>
     <h2>Welcome to TimeStop, you are logged in!</h2></body>
     <div hx-get="/stopwatch" hx-trigger="load, every 1s"></div>
+    if sessionRunning {
+        @stopButton()
+    }
+    else {
+        @startButton()
+    }
     </html>
+}
+
+templ startButton() {
+    <button hx-post="/sessions/start" hx-swap="outerHTML">Start</button>
+
+}
+templ stopButton() {
+    <button hx-post="/sessions/stop" hx-swap="outerHTML">Stop</button>
+}
+
+templ stopConfirmDialog(errorMsg string) {
+    <div id="stopConfirmDiv">
+		<label for="pauseMinutes">pause minutes to subtract:</label>
+		<input type="number" name="pauseMinutes" id="pauseInput" value="0"/>
+		<button hx-post="/sessions/confirm-stop" hx-target="#stopConfirmDiv" hx-swap="outerHTML"
+        hx-include="previous #pauseInput">Stop</button>
+		<button hx-post="/sessions/abort-stop" hx-target="#stopConfirmDiv"hx-swap="outerHTML">Don't stop</button>
+		if errorMsg != "" {
+            <p id="errorMessage" style="color: red;">{ errorMsg }</p>
+        }
+	</div>
 }

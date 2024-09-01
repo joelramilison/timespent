@@ -13,24 +13,25 @@ import (
 	"github.com/joelramilison/timespent/internal/database"
 )
 
-func (cfg *apiConfig) stopWatchHandler(w http.ResponseWriter, req *http.Request) {
+func (cfg *apiConfig) stopWatchHandler(w http.ResponseWriter, req *http.Request, user database.User) {
 	
 	sendZero := func() {
 		w.Header().Add("Content-Type", "text/html")
 		w.WriteHeader(200)
-		w.Write([]byte("0:00:00"))
+		w.Write([]byte("00:00:00"))
 	}
-	_, userID, err := extractFromCookie(req)
+	/*_, userID, err := extractFromCookie(req)
 	if err != nil {
 		log.Printf("user sent stopwatch refresh request but couldn't extract cookies: %v", err)
 		sendZero()
 		return
-	}
+	}*/
 
-	session, err := cfg.DB.GetNewestSession(req.Context(), userID)
+
+	session, err := cfg.DB.GetNewestSession(req.Context(), user.ID)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
-			log.Printf("Error while retrieving newest session for userID %v: %v", userID, err)
+			log.Printf("Error while retrieving newest session for userID %v: %v", user.ID, err)
 		}
 		sendZero()
 		return
@@ -53,6 +54,8 @@ func (cfg *apiConfig) stopWatchHandler(w http.ResponseWriter, req *http.Request)
 	w.Write([]byte(responseString))
 
 }
+
+
 
 func processStopwatchTime(session database.Session) (string, error) {
 

@@ -15,3 +15,8 @@ INSERT INTO sessions(
 VALUES (
     $1, NOW(), NOW(), NOW(), $2
 );
+
+-- name: StopSession :exec
+UPDATE sessions
+SET updated_at = NOW(), ended_at = NOW(), pause_seconds = $1
+WHERE id = $2;

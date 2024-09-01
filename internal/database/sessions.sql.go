@@ -55,3 +55,19 @@ func (q *Queries) StartSession(ctx context.Context, arg StartSessionParams) erro
 	_, err := q.db.ExecContext(ctx, startSession, arg.ID, arg.UserID)
 	return err
 }
+
+const stopSession = `-- name: StopSession :exec
+UPDATE sessions
+SET updated_at = NOW(), ended_at = NOW(), pause_seconds = $1
+WHERE id = $2
+`
+
+type StopSessionParams struct {
+	PauseSeconds int32
+	ID           uuid.UUID
+}
+
+func (q *Queries) StopSession(ctx context.Context, arg StopSessionParams) error {
+	_, err := q.db.ExecContext(ctx, stopSession, arg.PauseSeconds, arg.ID)
+	return err
+}

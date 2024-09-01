@@ -26,9 +26,13 @@ func main() {
 	mux.Handle("GET /login", templ.Handler(login(nil)))
 	mux.Handle("GET /register", templ.Handler(register()))
 	mux.HandleFunc("POST /users", cfg.registerUserHandler)
-	mux.HandleFunc("GET /{$}", cfg.middlewareAuth(appHandler))
+	mux.HandleFunc("GET /{$}", cfg.middlewareAuth(cfg.appHandler))
 	mux.HandleFunc("POST /login", cfg.loginHandler)
-	mux.HandleFunc("GET /stopwatch", cfg.stopWatchHandler)
+	mux.HandleFunc("GET /stopwatch", cfg.middlewareAuth(cfg.stopWatchHandler))
+	mux.HandleFunc("POST /sessions/start", cfg.middlewareAuth(cfg.startSessionHandler))
+	mux.Handle("POST /sessions/stop", templ.Handler(stopConfirmDialog("")))
+	mux.HandleFunc("POST /sessions/confirm-stop", cfg.middlewareAuth(cfg.stopSessionHandler))
+	mux.Handle("POST /sessions/abort-stop", templ.Handler(stopButton()))
 	
 
 
