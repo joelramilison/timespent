@@ -43,3 +43,16 @@ func getAppMode(db *database.Queries, user database.User, req *http.Request) int
 	}
 	return appModeRunning
 }
+
+
+func getAppModeFromSession(latestSession database.Session) int {
+	if latestSession.EndedAt.Valid {
+		// session ended already
+		return appModeNothing
+	}
+	if latestSession.PausedAt.Valid {
+		// session currently paused
+		return appModePaused
+	}
+	return appModeRunning
+}

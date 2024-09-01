@@ -132,8 +132,16 @@ func (cfg *apiConfig) confirmSessionStopHandler(w http.ResponseWriter, req *http
 		}
 	}
 
+	// If user is in pause right now, also add the current pause duration to the database
+	var fromCurrentPause int32
+	if session.PausedAt.Valid {
+		fromCurrentPause = int32(time.Since(session.PausedAt.Time).Seconds())
+	}
+
 	// Update changes in DB
-	err = cfg.DB.StopSession(req.Context(), database.StopSessionParams{ID: session.ID, PauseSeconds: int32(inputPauseSeconds),
+	err = cfg.DB.StopSession(req.Context(), database.StopSessionParams{
+		ID: session.ID,
+		PauseSeconds: inputPauseSeconds + session.PauseSeconds + fromCurrentPause,
 		AssignToDayBeforeStart: assignYesterday})
 	if err != nil {
 		sendComponent(w, req, stopConfirmDialog(errors.New("internal server error, please try again"), askForAssignDecision))
@@ -147,7 +155,7 @@ func (cfg *apiConfig) confirmSessionStopHandler(w http.ResponseWriter, req *http
 }
 
 
-func extractStopParams(req *http.Request, session database.Session, askForAssignDecision bool) (int, string, error) {
+func extractStopParams(req *http.Request, session database.Session, askForAssignDecision bool) (int32, string, error) {
 
 	urlEncodedParams, err := io.ReadAll(req.Body)
 	if err != nil {
@@ -175,7 +183,7 @@ func extractStopParams(req *http.Request, session database.Session, askForAssign
 	if err != nil {
 		return 0, "", errors.New("pause minutes input needs to be a number")
 	}
-	pauseSeconds := int(math.Round(pauseMinutesFloat * 60))
+	pauseSeconds := int32(math.Round(pauseMinutesFloat * 60))
 
 	durationSinceStart := time.Since(session.StartedAt)
 	if durationSinceStart < time.Duration(pauseSeconds) * time.Second {

@@ -46,7 +46,7 @@ func (cfg *apiConfig) resumeSessionHandler(w http.ResponseWriter, req *http.Requ
 	}
 	pauseDuration := time.Since(session.PausedAt.Time)
 	pauseDurationSeconds := int32(math.Round(pauseDuration.Seconds()))
-	
+
 	err = cfg.DB.ResumeSession(req.Context(), database.ResumeSessionParams{
 		PauseSeconds: pauseDurationSeconds + session.PauseSeconds, ID: session.ID,
 	})
