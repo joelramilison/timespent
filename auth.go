@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/joelramilison/timespent/internal/database"
 	"golang.org/x/crypto/bcrypt"
+	"errors"
 )
 
 const (
@@ -41,58 +42,34 @@ func (cfg *apiConfig) middlewareAuth(handler authedHandler) http.HandlerFunc {
 			
 		}
 		
-		rawCookies := req.Header.Get("Cookie")
-		cookies, err := http.ParseCookie(rawCookies)
+		sessionID, userID, err := extractFromCookie(req)
 		if err != nil {
 			toLogin()
 			return
 		}
 
-		// Check for sessionID
-		for _, cookie := range cookies {
-			if cookie.Name == "session_id" {
-				//cookieString, err := url.QueryUnescape(cookie.Value)
-				
-				userIDAndSession := strings.SplitN(cookie.Value, ":", 2)
-				if len(userIDAndSession) != 2 {
-					log.Printf("Found session ID that couldn't be separated using separator ':': %v", cookie.Value)
-					continue
-				}
-				userID, err := uuid.Parse(userIDAndSession[0])
-				if err != nil {
-					log.Printf("couldn't parse UUID %v while extracting session cookie", userIDAndSession[0])
-					continue
-				}
-				sessionID, err := url.QueryUnescape(userIDAndSession[1])
-				if err != nil {
-					log.Printf("couldn't unescape sessionID %v while extracting session cookie", userIDAndSession[1])
-					continue
-				}
-
-				user, err := cfg.DB.GetUser(req.Context(), userID)
-				if err != nil {
-					log.Printf("couldn't find user with ID %v in database, error: %v", userID.String(), err)
-					continue
-				}
-				if user.SessionExpiresAt.Time.Before(time.Now()) {
-					// there exists no session, so abort even the for loop
-					toLogin()
-					return
-				}
-				err = bcrypt.CompareHashAndPassword(user.SessionIDHash, []byte(sessionID))
-				if err != nil {
-					// sessionID doesn't match
-					continue
-				}
-				// at this point, the sessionID matches
-				handler(w, req, user)
-				return
+		user, err := cfg.DB.GetUser(req.Context(), userID)
+		if err != nil {
+			log.Printf("couldn't find user with ID %v in database, error: %v", userID.String(), err)
+					
+		}
+		if user.SessionExpiresAt.Time.Before(time.Now()) {
+			// there exists no active session, so abort even the for loop
+			toLogin()
+			return
+		}
+		err = bcrypt.CompareHashAndPassword(user.SessionIDHash, []byte(sessionID))
+		if err != nil {
+			// sessionID doesn't match
+			toLogin()
+			return
+		}
+		// at this point, the sessionID matches
+		handler(w, req, user)
 				
 			}
 		}
-	toLogin()
-}
-}
+
 
 // Creates sessionID and sets the cookie
 func createSession(w http.ResponseWriter, userID uuid.UUID) ([]byte, sql.NullTime, error) {
@@ -133,3 +110,42 @@ func createSession(w http.ResponseWriter, userID uuid.UUID) ([]byte, sql.NullTim
 	return hashedSessionID, sql.NullTime{Time: sessionExpiresAt, Valid: true}, nil
 }
 
+
+func extractFromCookie(req *http.Request) (string, uuid.UUID, error) {
+	rawCookies := req.Header.Get("Cookie")
+		cookies, err := http.ParseCookie(rawCookies)
+		if err != nil {
+			return "", uuid.UUID{}, errors.New("couldn't parse http cookies")
+		}
+		var cookieString string
+		for _, cookie := range cookies {
+			if cookie.Name == "session_id" {
+				cookieString = cookie.Value
+				break
+			}
+		}
+		if cookieString == "" {
+			return "", uuid.UUID{}, errors.New("no session cookie found")
+		}
+		
+		userIDAndSession := strings.SplitN(cookieString, ":", 2)
+		if len(userIDAndSession) != 2 {
+			log.Printf("Found session ID that couldn't be separated using separator ':': %v", cookieString)
+			return "", uuid.UUID{}, errors.New("cookie string couldn't be parsed")
+				
+		}
+		userID, err := uuid.Parse(userIDAndSession[0])
+		if err != nil {
+			log.Printf("couldn't parse UUID %v while extracting session cookie", userIDAndSession[0])
+			return "", uuid.UUID{}, errors.New("UUID couldn't be parsed")
+				
+		}
+		sessionID, err := url.QueryUnescape(userIDAndSession[1])
+		if err != nil {
+			log.Printf("couldn't unescape sessionID %v while extracting session cookie", userIDAndSession[1])
+			return "", uuid.UUID{}, errors.New("couldn't process sessionID")
+					
+		}
+		return sessionID, userID, nil
+
+}

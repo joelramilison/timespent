@@ -55,7 +55,7 @@ func (cfg *apiConfig) loginHandler(w http.ResponseWriter, req *http.Request) {
 		writeError("Internal server error, please try again")
 		return
 	}
-	err = cfg.DB.UpdateSession(req.Context(), database.UpdateSessionParams{
+	err = cfg.DB.UpdateLoginSession(req.Context(), database.UpdateLoginSessionParams{
 		ID: user.ID, SessionIDHash: hashedSessionID, SessionExpiresAt: sessionExpiresAt,
 	})
 	if err != nil {

@@ -13,7 +13,7 @@ WHERE id = $1;
 SELECT * FROM users
 WHERE username = $1;
 
--- name: UpdateSession :exec
+-- name: UpdateLoginSession :exec
 UPDATE users
 SET updated_at = NOW(), session_expires_at = $1, session_id_hash = $2
 WHERE id = $3;

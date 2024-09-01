@@ -20,7 +20,6 @@ func main() {
 		panic(err)
 	}
 	cfg := &apiConfig{DB: database.New(db)}
-
 	mux := http.NewServeMux()
 	server := http.Server{Handler: mux}
 	
@@ -29,6 +28,7 @@ func main() {
 	mux.HandleFunc("POST /users", cfg.registerUserHandler)
 	mux.HandleFunc("GET /{$}", cfg.middlewareAuth(appHandler))
 	mux.HandleFunc("POST /login", cfg.loginHandler)
+	mux.HandleFunc("GET /stopwatch", cfg.stopWatchHandler)
 	
 
 

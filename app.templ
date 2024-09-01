@@ -4,8 +4,10 @@ templ app() {
 
     <html>
     <head>
+    <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
     <title>TimeSpent</title></head>
     <body>
     <h2>Welcome to TimeStop, you are logged in!</h2></body>
+    <div hx-get="/stopwatch" hx-trigger="load, every 1s"></div>
     </html>
 }

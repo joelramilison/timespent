@@ -83,19 +83,19 @@ func (q *Queries) GetUserbyName(ctx context.Context, username string) (User, err
 	return i, err
 }
 
-const updateSession = `-- name: UpdateSession :exec
+const updateLoginSession = `-- name: UpdateLoginSession :exec
 UPDATE users
 SET updated_at = NOW(), session_expires_at = $1, session_id_hash = $2
 WHERE id = $3
 `
 
-type UpdateSessionParams struct {
+type UpdateLoginSessionParams struct {
 	SessionExpiresAt sql.NullTime
 	SessionIDHash    []byte
 	ID               uuid.UUID
 }
 
-func (q *Queries) UpdateSession(ctx context.Context, arg UpdateSessionParams) error {
-	_, err := q.db.ExecContext(ctx, updateSession, arg.SessionExpiresAt, arg.SessionIDHash, arg.ID)
+func (q *Queries) UpdateLoginSession(ctx context.Context, arg UpdateLoginSessionParams) error {
+	_, err := q.db.ExecContext(ctx, updateLoginSession, arg.SessionExpiresAt, arg.SessionIDHash, arg.ID)
 	return err
 }
