@@ -1,6 +1,9 @@
 package main
 
 
+//     <button hx-post="/sessions/pause" hx-swap="outerHTML" hx-target="#stopPauseDiv">Pause</button>
+
+//    <button hx-on:click="stopWithTime('#resumeStopDiv')">Stop</button>
 
 templ app(appMode int) {
 
@@ -9,7 +12,7 @@ templ app(appMode int) {
     <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
     <title>TimeSpent</title></head>
     <body>
-    <h2>Welcome to TimeStop, you are logged in!</h2></body>
+    <h2>Welcome to TimeStop, you are logged in!</h2>
     <div hx-get="/stopwatch" hx-trigger="load, every 1s"></div>
     if appMode == appModeRunning {
         @stopPauseButtons(nil)
@@ -21,6 +24,8 @@ templ app(appMode int) {
         @resumeStopButtons(nil)
     }
     <div><a href="/" hx-post="/logout">Log out</a></div>
+    
+    </body>
     </html>
 }
 
@@ -28,10 +33,12 @@ templ startButton() {
     <button hx-post="/sessions/start" hx-swap="outerHTML">Start</button>
 
 }
+
 templ stopPauseButtons(err error) {
     <div id="stopPauseDiv">
-    <button hx-post="/sessions/stop" hx-swap="outerHTML" hx-target="#stopPauseDiv">Stop</button>
     <button hx-post="/sessions/pause" hx-swap="outerHTML" hx-target="#stopPauseDiv">Pause</button>
+    <button hx-post="/sessions/stop" hx-swap="outerHTML" hx-target="#stopPauseDiv"
+     hx-vals="js:{hours: new Date().getHours()}">Stop</button>
     if err != nil {
         <br/><p style="color: red;">{ err.Error() }</p>
     }
@@ -41,22 +48,33 @@ templ stopPauseButtons(err error) {
 templ resumeStopButtons(err error) {
     <div id="resumeStopDiv">
     <button hx-post="/sessions/resume" hx-swap="outerHTML" hx-target="#resumeStopDiv">Resume</button>
-    <button hx-post="/sessions/stop" hx-swap="outerHTML" hx-target="#resumeStopDiv">Stop</button>
+    <button hx-post="/sessions/stop" hx-swap="outerHTML" hx-target="#resumeStopDiv"
+     hx-vals="js:{hours: new Date().getHours()}">Stop</button>
      if err != nil {
         <br/><p style="color: red;">{ err.Error() }</p>
     }
     </div>
 }
 
-templ stopConfirmDialog(errorMsg string) {
+// nightTime: 0AM-6AM
+// if it's night time on the client side when stopping the session,
+// they will be asked to choose which day to assign the session to
+templ stopConfirmDialog(err error, nightTime bool) {
     <div id="stopConfirmDiv">
 		<label for="pauseMinutes">pause minutes to subtract:</label>
 		<input type="number" name="pauseMinutes" id="pauseInput" value="0"/>
 		<button hx-post="/sessions/confirm-stop" hx-target="#stopConfirmDiv" hx-swap="outerHTML"
-        hx-include="previous #pauseInput">Stop</button>
+        hx-include="[name='assignYesterdayGroup'], [id='pauseInput']">Stop</button>
 		<button hx-post="/sessions/abort-stop" hx-target="#stopConfirmDiv"hx-swap="outerHTML">Don't stop</button>
-		if errorMsg != "" {
-            <p id="errorMessage" style="color: red;">{ errorMsg }</p>
+		
+        if nightTime {
+            <input type="radio" id="radioYesterday" name="assignYesterdayGroup" value="yesterday">
+            <label for="radioYesterday">assign yesterday</label><br>
+            <input type="radio" id="radioToday" name="assignYesterdayGroup" value="today">
+            <label for="radioToday">assign today</label><br>
+        }
+        if err != nil {
+            <p id="errorMessage" style="color: red;">{ err.Error() }</p>
         }
 	</div>
 }

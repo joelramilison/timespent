@@ -22,3 +22,8 @@ WHERE id = $3;
 UPDATE users
 SET updated_at = NOW(), session_expires_at = NULL, session_id_hash = NULL
 WHERE id = $1;
+
+-- name: UpdateAssignAwait :exec
+UPDATE users
+SET updated_at = NOW(), await_assign_decision_until = $1
+WHERE id = $2;

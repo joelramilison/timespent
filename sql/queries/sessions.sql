@@ -18,8 +18,8 @@ VALUES (
 
 -- name: StopSession :exec
 UPDATE sessions
-SET updated_at = NOW(), ended_at = NOW(), pause_seconds = $1, paused_at = NULL
-WHERE id = $2;
+SET updated_at = NOW(), ended_at = NOW(), pause_seconds = $1, paused_at = NULL, assign_to_day_before_start = $2
+WHERE id = $3;
 
 -- name: PauseSession :exec
 UPDATE sessions
@@ -29,4 +29,9 @@ WHERE id = $2;
 -- name: ResumeSession :exec
 UPDATE sessions
 SET updated_at = NOW(), paused_at = NULL, pause_seconds = $1
+WHERE id = $2;
+
+-- name: UpdateDayReassign :exec
+UPDATE sessions
+SET assign_to_day_before_start = $1, created_at = NOW()
 WHERE id = $2;
