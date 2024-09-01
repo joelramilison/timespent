@@ -17,3 +17,8 @@ WHERE username = $1;
 UPDATE users
 SET updated_at = NOW(), session_expires_at = $1, session_id_hash = $2
 WHERE id = $3;
+
+-- name: LogUserOut :exec
+UPDATE users
+SET updated_at = NOW(), session_expires_at = NULL, session_id_hash = NULL
+WHERE id = $1;

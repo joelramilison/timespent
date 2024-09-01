@@ -83,6 +83,17 @@ func (q *Queries) GetUserbyName(ctx context.Context, username string) (User, err
 	return i, err
 }
 
+const logUserOut = `-- name: LogUserOut :exec
+UPDATE users
+SET updated_at = NOW(), session_expires_at = NULL, session_id_hash = NULL
+WHERE id = $1
+`
+
+func (q *Queries) LogUserOut(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, logUserOut, id)
+	return err
+}
+
 const updateLoginSession = `-- name: UpdateLoginSession :exec
 UPDATE users
 SET updated_at = NOW(), session_expires_at = $1, session_id_hash = $2

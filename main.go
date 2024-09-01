@@ -32,8 +32,10 @@ func main() {
 	mux.HandleFunc("POST /sessions/start", cfg.middlewareAuth(cfg.startSessionHandler))
 	mux.Handle("POST /sessions/stop", templ.Handler(stopConfirmDialog("")))
 	mux.HandleFunc("POST /sessions/confirm-stop", cfg.middlewareAuth(cfg.stopSessionHandler))
-	mux.Handle("POST /sessions/abort-stop", templ.Handler(stopButton()))
-	
+	mux.Handle("POST /sessions/abort-stop", cfg.middlewareAuth(cfg.abortStopHandler))
+	mux.HandleFunc("POST /logout", cfg.middlewareAuth(cfg.logoutHandler))
+	mux.HandleFunc("POST /sessions/pause", cfg.middlewareAuth(cfg.pauseSessionHandler))
+	mux.HandleFunc("POST /sessions/resume", cfg.middlewareAuth(cfg.resumeSessionHandler))
 
 
 	fmt.Println("Starting server ...")

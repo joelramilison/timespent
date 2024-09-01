@@ -7,12 +7,13 @@ package database
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
 
 const getNewestSession = `-- name: GetNewestSession :one
-SELECT id, created_at, updated_at, started_at, ended_at, pause_seconds, user_id FROM sessions
+SELECT id, created_at, updated_at, started_at, ended_at, pause_seconds, user_id, paused_at FROM sessions
 WHERE user_id = $1
 ORDER BY started_at DESC
 LIMIT 1
@@ -29,8 +30,41 @@ func (q *Queries) GetNewestSession(ctx context.Context, userID uuid.UUID) (Sessi
 		&i.EndedAt,
 		&i.PauseSeconds,
 		&i.UserID,
+		&i.PausedAt,
 	)
 	return i, err
+}
+
+const pauseSession = `-- name: PauseSession :exec
+UPDATE sessions
+SET updated_at = NOW(), paused_at = $1
+WHERE id = $2
+`
+
+type PauseSessionParams struct {
+	PausedAt sql.NullTime
+	ID       uuid.UUID
+}
+
+func (q *Queries) PauseSession(ctx context.Context, arg PauseSessionParams) error {
+	_, err := q.db.ExecContext(ctx, pauseSession, arg.PausedAt, arg.ID)
+	return err
+}
+
+const resumeSession = `-- name: ResumeSession :exec
+UPDATE sessions
+SET updated_at = NOW(), paused_at = NULL, pause_seconds = $1
+WHERE id = $2
+`
+
+type ResumeSessionParams struct {
+	PauseSeconds int32
+	ID           uuid.UUID
+}
+
+func (q *Queries) ResumeSession(ctx context.Context, arg ResumeSessionParams) error {
+	_, err := q.db.ExecContext(ctx, resumeSession, arg.PauseSeconds, arg.ID)
+	return err
 }
 
 const startSession = `-- name: StartSession :exec
@@ -58,7 +92,7 @@ func (q *Queries) StartSession(ctx context.Context, arg StartSessionParams) erro
 
 const stopSession = `-- name: StopSession :exec
 UPDATE sessions
-SET updated_at = NOW(), ended_at = NOW(), pause_seconds = $1
+SET updated_at = NOW(), ended_at = NOW(), pause_seconds = $1, paused_at = NULL
 WHERE id = $2
 `
 

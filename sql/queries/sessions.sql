@@ -18,5 +18,15 @@ VALUES (
 
 -- name: StopSession :exec
 UPDATE sessions
-SET updated_at = NOW(), ended_at = NOW(), pause_seconds = $1
+SET updated_at = NOW(), ended_at = NOW(), pause_seconds = $1, paused_at = NULL
+WHERE id = $2;
+
+-- name: PauseSession :exec
+UPDATE sessions
+SET updated_at = NOW(), paused_at = $1
+WHERE id = $2;
+
+-- name: ResumeSession :exec
+UPDATE sessions
+SET updated_at = NOW(), paused_at = NULL, pause_seconds = $1
 WHERE id = $2;

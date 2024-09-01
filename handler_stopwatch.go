@@ -20,13 +20,6 @@ func (cfg *apiConfig) stopWatchHandler(w http.ResponseWriter, req *http.Request,
 		w.WriteHeader(200)
 		w.Write([]byte("00:00:00"))
 	}
-	/*_, userID, err := extractFromCookie(req)
-	if err != nil {
-		log.Printf("user sent stopwatch refresh request but couldn't extract cookies: %v", err)
-		sendZero()
-		return
-	}*/
-
 
 	session, err := cfg.DB.GetNewestSession(req.Context(), user.ID)
 	if err != nil {
@@ -37,7 +30,7 @@ func (cfg *apiConfig) stopWatchHandler(w http.ResponseWriter, req *http.Request,
 		return
 	}
 	if session.EndedAt.Valid {
-		// session ended already
+		// session ended already or is paused
 		sendZero()
 		return
 	}
@@ -64,8 +57,19 @@ func processStopwatchTime(session database.Session) (string, error) {
 	}
 	pauseDuration := time.Duration(session.PauseSeconds) * time.Second
 	
-	// time since session start (and subtract the pause duration)
-	timeElapsed := time.Since(session.StartedAt.Add(pauseDuration))
+	// depending on pause status, we use either the time up until now or
+	// the time until the pause
+	var referenceTime time.Time
+
+	if session.PausedAt.Valid {
+		referenceTime = session.PausedAt.Time
+	} else {
+		referenceTime = time.Now()
+	}
+
+	// time since session start until the referenceTime (and subtract the pause duration)
+	timeElapsed := referenceTime.Sub(session.StartedAt) - pauseDuration
+	
 	if timeElapsed <= 0 {
 		return "", fmt.Errorf("session at uuid %v: %v = timeElapsed (timeNow - pauseDuration - startTime < 0)",
 		session.ID, timeElapsed)

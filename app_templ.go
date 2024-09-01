@@ -8,7 +8,7 @@ package main
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-func app(sessionRunning bool) templ.Component {
+func app(appMode int) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -30,18 +30,23 @@ func app(sessionRunning bool) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if sessionRunning {
-			templ_7745c5c3_Err = stopButton().Render(ctx, templ_7745c5c3_Buffer)
+		if appMode == appModeRunning {
+			templ_7745c5c3_Err = stopPauseButtons(nil).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		} else {
+		} else if appMode == appModeNothing {
 			templ_7745c5c3_Err = startButton().Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
+		} else if appMode == appModePaused {
+			templ_7745c5c3_Err = resumeStopButtons(nil).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</html>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div><a href=\"/\" hx-post=\"/logout\">Log out</a></div></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -75,7 +80,7 @@ func startButton() templ.Component {
 	})
 }
 
-func stopButton() templ.Component {
+func stopPauseButtons(err error) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
@@ -93,7 +98,79 @@ func stopButton() templ.Component {
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button hx-post=\"/sessions/stop\" hx-swap=\"outerHTML\">Stop</button>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"stopPauseDiv\"><button hx-post=\"/sessions/stop\" hx-swap=\"outerHTML\" hx-target=\"#stopPauseDiv\">Stop</button> <button hx-post=\"/sessions/pause\" hx-swap=\"outerHTML\" hx-target=\"#stopPauseDiv\">Pause</button> ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if err != nil {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<br><p style=\"color: red;\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var4 string
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(err.Error())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app.templ`, Line: 36, Col: 49}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</p>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return templ_7745c5c3_Err
+	})
+}
+
+func resumeStopButtons(err error) templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var5 == nil {
+			templ_7745c5c3_Var5 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"resumeStopDiv\"><button hx-post=\"/sessions/resume\" hx-swap=\"outerHTML\" hx-target=\"#resumeStopDiv\">Resume</button> <button hx-post=\"/sessions/stop\" hx-swap=\"outerHTML\" hx-target=\"#resumeStopDiv\">Stop</button> ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if err != nil {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<br><p style=\"color: red;\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var6 string
+			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(err.Error())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app.templ`, Line: 46, Col: 49}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</p>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -114,9 +191,9 @@ func stopConfirmDialog(errorMsg string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var4 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var4 == nil {
-			templ_7745c5c3_Var4 = templ.NopComponent
+		templ_7745c5c3_Var7 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var7 == nil {
+			templ_7745c5c3_Var7 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"stopConfirmDiv\"><label for=\"pauseMinutes\">pause minutes to subtract:</label> <input type=\"number\" name=\"pauseMinutes\" id=\"pauseInput\" value=\"0\"> <button hx-post=\"/sessions/confirm-stop\" hx-target=\"#stopConfirmDiv\" hx-swap=\"outerHTML\" hx-include=\"previous #pauseInput\">Stop</button> <button hx-post=\"/sessions/abort-stop\" hx-target=\"#stopConfirmDiv\" hx-swap=\"outerHTML\">Don't stop</button> ")
@@ -128,12 +205,12 @@ func stopConfirmDialog(errorMsg string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var5 string
-			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(errorMsg)
+			var templ_7745c5c3_Var8 string
+			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(errorMsg)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app.templ`, Line: 37, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app.templ`, Line: 59, Col: 63}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

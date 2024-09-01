@@ -19,6 +19,7 @@ type Session struct {
 	EndedAt      sql.NullTime
 	PauseSeconds int32
 	UserID       uuid.UUID
+	PausedAt     sql.NullTime
 }
 
 type User struct {

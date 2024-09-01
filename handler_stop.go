@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"errors"
 	"io"
 	"log"
@@ -10,44 +9,14 @@ import (
 	"net/url"
 	"strconv"
 	"time"
-	"github.com/a-h/templ"
-	"github.com/google/uuid"
 	"github.com/joelramilison/timespent/internal/database"
 )
-
-func (cfg *apiConfig) startSessionHandler(w http.ResponseWriter, req *http.Request, user database.User) {
-
-	if hasRunningSession(cfg.DB, user, req) {
-	
-		log.Printf("error: user started session with session already running")
-		// refresh page. This error absolutely shouldn't occur
-		w.Header().Add("HX-Redirect", "/")
-		w.WriteHeader(200)
-		w.Write([]byte{})
-		return
-	}
-
-	// Create DB entry
-	err := cfg.DB.StartSession(req.Context(), database.StartSessionParams{
-		ID: uuid.New(), UserID: user.ID,
-	})
-	if err != nil {
-		log.Printf("error: couldn't start session, query failed")
-		w.Header().Add("HX-Redirect", "/")
-		w.WriteHeader(200)
-		w.Write([]byte{})
-		return
-	}
-	
-	// Replace the start button with a stop button
-	sendComponent(w, req, stopButton())
-	
-}
 
 
 func (cfg *apiConfig) stopSessionHandler(w http.ResponseWriter, req *http.Request, user database.User) {
 
-	if !hasRunningSession(cfg.DB, user, req) {
+	// if there is no running session
+	if getAppMode(cfg.DB, user, req) == appModeNothing {
 	
 		log.Printf("error: user stopped session with no session running")
 		w.Header().Add("HX-Redirect", "/")
@@ -103,7 +72,7 @@ func extractPauseSeconds(req *http.Request, session database.Session) (int, erro
 		log.Printf("couldn't get pauseMinutes from stop Confirmation dialog request")
 		return 0, errors.New("couldn't process value for pause")
 	}
-	
+
 	pauseMinutesFloat, err := strconv.ParseFloat(pauseString, 64)
 	if err != nil {
 		return 0, errors.New("pause minutes input needs to be a number")
@@ -117,21 +86,4 @@ func extractPauseSeconds(req *http.Request, session database.Session) (int, erro
 
 	return pauseSeconds, nil
 
-}
-
-
-func sendComponent(w http.ResponseWriter, req *http.Request, component templ.Component) {
-
-	buf := bytes.Buffer{}
-	err := component.Render(req.Context(), &buf)
-	if err != nil {
-		log.Printf("error rendering component: %v", err)
-		w.Header().Add("HX-Redirect", "/")
-		w.Write([]byte{})
-		return
-	}
-
-	w.Header().Add("Content-Type", "text/html")
-	w.WriteHeader(200)
-	w.Write(buf.Bytes())
 }

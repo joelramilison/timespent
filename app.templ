@@ -1,6 +1,8 @@
 package main
 
-templ app(sessionRunning bool) {
+
+
+templ app(appMode int) {
 
     <html>
     <head>
@@ -9,12 +11,16 @@ templ app(sessionRunning bool) {
     <body>
     <h2>Welcome to TimeStop, you are logged in!</h2></body>
     <div hx-get="/stopwatch" hx-trigger="load, every 1s"></div>
-    if sessionRunning {
-        @stopButton()
+    if appMode == appModeRunning {
+        @stopPauseButtons(nil)
     }
-    else {
+    else if appMode == appModeNothing {
         @startButton()
     }
+    else if appMode == appModePaused {
+        @resumeStopButtons(nil)
+    }
+    <div><a href="/" hx-post="/logout">Log out</a></div>
     </html>
 }
 
@@ -22,8 +28,24 @@ templ startButton() {
     <button hx-post="/sessions/start" hx-swap="outerHTML">Start</button>
 
 }
-templ stopButton() {
-    <button hx-post="/sessions/stop" hx-swap="outerHTML">Stop</button>
+templ stopPauseButtons(err error) {
+    <div id="stopPauseDiv">
+    <button hx-post="/sessions/stop" hx-swap="outerHTML" hx-target="#stopPauseDiv">Stop</button>
+    <button hx-post="/sessions/pause" hx-swap="outerHTML" hx-target="#stopPauseDiv">Pause</button>
+    if err != nil {
+        <br/><p style="color: red;">{ err.Error() }</p>
+    }
+    </div>
+}
+
+templ resumeStopButtons(err error) {
+    <div id="resumeStopDiv">
+    <button hx-post="/sessions/resume" hx-swap="outerHTML" hx-target="#resumeStopDiv">Resume</button>
+    <button hx-post="/sessions/stop" hx-swap="outerHTML" hx-target="#resumeStopDiv">Stop</button>
+     if err != nil {
+        <br/><p style="color: red;">{ err.Error() }</p>
+    }
+    </div>
 }
 
 templ stopConfirmDialog(errorMsg string) {
@@ -38,3 +60,6 @@ templ stopConfirmDialog(errorMsg string) {
         }
 	</div>
 }
+
+
+
