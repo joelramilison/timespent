@@ -38,7 +38,7 @@ func login(cm *coloredMessage) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<html><head><title>Login</title><script src=\"https://unpkg.com/htmx.org@2.0.2\" integrity=\"sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ\" crossorigin=\"anonymous\"></script><style>\n    .green {\n        color: limegreen;\n    }\n    .red {\n        color: red;\n    }\n    .black {\n        color: black;\n    }\n    </style></head><body id=\"loginBody\"><h1>Login</h1><form hx-post=\"/login\" hx-target=\"#loginBody\"><label for=\"username\">Username:</label><br><input type=\"text\" id=\"username\" name=\"username\"><br><label for=\"password\">Password:</label><br><input type=\"password\" id=\"password\" name=\"password\"><br><input type=\"submit\" value=\"Submit\"></form><p>Don't have an account yet? <a href=\"/register\">Register here</a></p>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<html><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Login</title><script src=\"https://unpkg.com/htmx.org@2.0.2\" integrity=\"sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ\" crossorigin=\"anonymous\"></script><link rel=\"stylesheet\" href=\"/css/login.css\"></head><body id=\"loginBody\" onload=\"document.body.style.opacity=&#39;1&#39;;\"><div id=\"mainContainer\"><h1 id=\"brandName\">timeSpent.io</h1><h1 id=\"loginH1\">Login</h1><form hx-post=\"/login\" hx-target=\"#loginBody\"><input type=\"text\" id=\"username\" name=\"username\" placeholder=\"Username\" class=\"textInput\"><br><input type=\"password\" id=\"password\" name=\"password\" placeholder=\"Password\" class=\"textInput\"><br><input type=\"submit\" value=\"Submit\"></form><span id=\"registerHint\"><p>Don't have an account yet? <a href=\"/register\">Register here</a></p></span> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -48,7 +48,7 @@ func login(cm *coloredMessage) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p class=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p id=\"errorMsg\" class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -68,7 +68,7 @@ func login(cm *coloredMessage) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(cm.text)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `login.templ`, Line: 46, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `login.templ`, Line: 38, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -79,7 +79,7 @@ func login(cm *coloredMessage) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</body></html>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

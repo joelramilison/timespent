@@ -49,7 +49,7 @@ func (cfg *apiConfig) loginHandler(w http.ResponseWriter, req *http.Request) {
 		writeError("wrong password")
 		return
 	}
-	// Crete sessionID and set it as cookie
+	// Create sessionID and set it as cookie
 	hashedSessionID, sessionExpiresAt, err := createSession(w, user.ID)
 	if err != nil {
 		writeError("Internal server error, please try again")

@@ -10,8 +10,12 @@ templ app(appMode int) {
     <html>
     <head>
     <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
-    <title>TimeSpent</title></head>
-    <body>
+    <title>TimeSpent</title>
+    <link rel="stylesheet" href="/css/app.css"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    </head>
+    <body onload="document.body.style.opacity='1';">
     <h2>Welcome to TimeStop, you are logged in!</h2>
     <div hx-get="/stopwatch" hx-trigger="load, every 1s"></div>
     if appMode == appModeRunning {

@@ -36,6 +36,9 @@ func main() {
 	mux.HandleFunc("POST /logout", cfg.middlewareAuth(cfg.logoutHandler))
 	mux.HandleFunc("POST /sessions/pause", cfg.middlewareAuth(cfg.pauseSessionHandler))
 	mux.HandleFunc("POST /sessions/resume", cfg.middlewareAuth(cfg.resumeSessionHandler))
+	mux.Handle("GET /css/", http.FileServer(http.Dir(".")))
+	mux.Handle("GET /fonts/", http.FileServer(http.Dir(".")))
+
 
 
 	fmt.Println("Starting server ...")
