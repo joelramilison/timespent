@@ -1,0 +1,46 @@
+package main
+
+import "github.com/joelramilison/timespent/internal/database"
+
+// only body because it's called in using hx-boost
+templ activitiesPage(activities []database.Activity) {
+
+    <button hx-get="/" hx-target="body">Home</button>
+   <form id="createActivityForm" hx-post="/activities" hx-target="body">
+   <input type="text" name="createActivityName" id="createActivityName" placeholder="Activity name" autofocus/>
+   <input type="submit" value="+"/>
+   </form>
+   <div id="activitiesAndErrMsgDiv">
+   <p>Your activities:</p>
+   </div>
+   <button id="editButton" hx-post="/activities/edit" hx-target="#activitiesListDiv">Edit</button>
+   <div id="activitiesListDiv">
+   if len(activities) > 0 {
+   <ul>
+        for _, activity := range activities {
+            <li>{ activity.Name }</li>
+        }
+    </ul>
+   }
+   </div>
+   
+}
+
+templ confirmDeleteFormAndInfo(activityID string) {
+    <form id="createActivityForm" hx-swap-oob="outerHTML" hx-post={ "/activities/confirm/" + activityID } hx-target="body">
+   <input type="text" name="confirmDeleteInput" id="confirmDeleteInput" placeholder="Type here to confirm" autofocus/>
+   <input type="submit" value="Confirm"/>
+   </form>
+   <p id="activitiesAndErrMsgDiv">type the activity name to confirm,<br/>this will remove all the associated sessions</p>
+}
+
+templ editList(activities []database.Activity) {
+    for _, activity := range activities {
+            <div class="editListItemDiv">
+            <button hx-delete={ "/activities/" + activity.ID.String() } hx-target="#activitiesAndErrMsgDiv">Delete</button>
+            <p class="editListItemText">{ activity.Name }</p>
+            </div>
+        }
+    <button id="editButton" hx-get="/activities" hx-swap-oob="outerHTML" hx-target="body">Back</button>
+
+}

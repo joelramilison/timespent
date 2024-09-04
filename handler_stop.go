@@ -18,7 +18,7 @@ import (
 // this should return the confirmation dialog to stop the session
 func (cfg *apiConfig) stopSessionHandler(w http.ResponseWriter, req *http.Request, user database.User) {
 
-	appMode := getAppMode(cfg.DB, user, req)
+	appMode, _ := getAppMode(cfg.DB, user, req)
 
 	returnError := func(err error) {
 		if appMode == appModeRunning {
@@ -98,7 +98,8 @@ func (cfg *apiConfig) stopSessionHandler(w http.ResponseWriter, req *http.Reques
 func (cfg *apiConfig) confirmSessionStopHandler(w http.ResponseWriter, req *http.Request, user database.User) {
 
 	// if there is no running session
-	if getAppMode(cfg.DB, user, req) == appModeNothing {
+	appMode, _ := getAppMode(cfg.DB, user, req)
+	if appMode == appModeNothing {
 	
 		log.Printf("error: user stopped session with no session running")
 		w.Header().Add("HX-Redirect", "/")
@@ -149,8 +150,18 @@ func (cfg *apiConfig) confirmSessionStopHandler(w http.ResponseWriter, req *http
 		return
 	}
 
+	activities, err := cfg.DB.GetUserActivities(req.Context(), user.ID)
+	if err != nil {
+			sendComponent(w, req, startButton(errors.New("stopped session but couldn't load activity list")))
+			return
+
+	}
+
+	w.Header().Add("HX-Retarget", "body")
+	w.Header().Add("HX-Reswap", "innerHTML")
+	sendComponent(w, req, appBodyInner(appModeNothing, database.Activity{}, activities))
 	
-	sendComponent(w, req, startButton())
+	
 
 }
 

@@ -38,3 +38,23 @@
     -webkit-transition: opacity 2s; /* Safari */
   }
  
+  #activitySelectorDiv {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+  }
+  #activitySettingsButton {
+    width: 25px;
+    height: 25px;
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    margin-left: 2px;
+  }
+  #activitySettingsButton:hover {
+    background-color: rgb(218, 218, 218);
+  }
+  #activitySettingsIcon {
+    width: 25px;
+    height: 25px;
+  }

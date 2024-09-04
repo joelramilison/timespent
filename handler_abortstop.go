@@ -9,7 +9,7 @@ import (
 
 func (cfg *apiConfig) abortStopHandler(w http.ResponseWriter, req *http.Request, user database.User) {
 
-	appMode := getAppMode(cfg.DB, user, req)
+	appMode, _ := getAppMode(cfg.DB, user, req)
 	if appMode == appModeRunning {
 		templ.Handler(stopPauseButtons(nil)).ServeHTTP(w, req)
 	} else if appMode == appModePaused {

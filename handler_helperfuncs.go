@@ -8,6 +8,8 @@ import (
 	"github.com/joelramilison/timespent/internal/database"
 	"errors"
 	"database/sql"
+	"io"
+	"net/url"
 )
 func sendComponent(w http.ResponseWriter, req *http.Request, component templ.Component) {
 
@@ -25,23 +27,49 @@ func sendComponent(w http.ResponseWriter, req *http.Request, component templ.Com
 	w.Write(buf.Bytes())
 }
 
-func getAppMode(db *database.Queries, user database.User, req *http.Request) int {
+// returns appMode and the most recent session for further use
+func getAppMode(db *database.Queries, user database.User, req *http.Request) (int, database.Session) {
 	session, err := db.GetNewestSession(req.Context(), user.ID)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			log.Printf("Error while retrieving newest session for userID %v: %v", user.ID, err)
 		}
-		return appModeNothing
+		return appModeNothing, session
 	}
 	if session.EndedAt.Valid {
 		// session ended already
-		return appModeNothing
+		return appModeNothing, session
 	}
 	if session.PausedAt.Valid {
 		// session currently paused
-		return appModePaused
+		return appModePaused, session
 	}
-	return appModeRunning
+	return appModeRunning, session
 }
 
 
+// returns error if an error occured or if the value for at least one key is "" 
+func extractAndVerifyParams(req *http.Request, keys []string) (map[string]string, error) {
+
+	result := map[string]string{}
+
+	urlEncodedParams, err := io.ReadAll(req.Body)
+	if err != nil {
+		log.Printf("error while trying to perform io.ReadAll: %v\n", err.Error())
+		return result, errors.New("internal server error, please try again")
+	}
+	params, err := url.ParseQuery(string(urlEncodedParams))
+	if err != nil {
+		log.Printf("error while trying to parse query %v\n", string(urlEncodedParams))
+		return result, errors.New("internal server error, please try again")
+	}
+	
+	for _, key := range keys {
+		if result[key] = params.Get(key); result[key] == "" {
+			return map[string]string{}, errors.New("not all fields were filled out")
+		}
+		
+	}
+
+	return result, nil
+}

@@ -1,41 +1,81 @@
 package main
 
+import (
+    "github.com/joelramilison/timespent/internal/database"
+
+)
 
 //     <button hx-post="/sessions/pause" hx-swap="outerHTML" hx-target="#stopPauseDiv">Pause</button>
 
 //    <button hx-on:click="stopWithTime('#resumeStopDiv')">Stop</button>
 
-templ app(appMode int) {
+
+// one of activitiy and activities is a zero value.
+templ app(appMode int, activity database.Activity, activities []database.Activity) {
 
     <html>
     <head>
     <script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
     <title>TimeSpent</title>
     <link rel="stylesheet" href="/css/app.css"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/activities.css"/>
 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body onload="document.body.style.opacity='1';">
+    @appBodyInner(appMode, activity, activities)
+    </body>
+    </html>
+}
+templ appBodyInner(appMode int, activity database.Activity, activities []database.Activity) {
     <h2>Welcome to TimeStop, you are logged in!</h2>
-    <div hx-get="/stopwatch" hx-trigger="load, every 1s"></div>
+    <div id="activity">
+    if appMode == appModeNothing {
+        @activitySelector(activities)
+    } else {
+        @currentActivity(activity.Name)
+    }
+    </div>
+    <div hx-get="/stopwatch" hx-trigger="load, every 1s">00:00:00</div>
     if appMode == appModeRunning {
         @stopPauseButtons(nil)
     }
     else if appMode == appModeNothing {
-        @startButton()
+        @startButton(nil)
     }
     else if appMode == appModePaused {
         @resumeStopButtons(nil)
     }
-    <div><a href="/" hx-post="/logout">Log out</a></div>
+    <div><a href="/" hx-post="/logout" hx-swap="none">Log out</a></div>
     
-    </body>
-    </html>
 }
 
-templ startButton() {
-    <button hx-post="/sessions/start" hx-swap="outerHTML">Start</button>
+templ currentActivity(activity string) {
+    Current activity:<br/>{ activity }
+}
 
+templ activitySelector(activities []database.Activity) {
+    <div id="activitySelectorDiv">
+   if len(activities) > 0 {
+        <select name="activitySelect" id="activitySelect">
+        for _, activity := range activities {
+            <option value={ reduceActivity(activity.Name) }>{ activity.Name }</option>
+        }
+        </select>
+    } else {
+        <button hx-get="/activities" hx-target="body" id="createActivityButton">Create activity</button>
+    }
+    <button id="activitySettingsButton" hx-get="/activities" hx-target="body"><img id="activitySettingsIcon" src="assets/settings_icon.png"/></button>
+    </div>
+}
+
+templ startButton(err error) {
+    <div>
+    <button hx-post="/sessions/start" hx-swap="outerHTML" hx-target="closest div" hx-include="#activitySelect">Start</button>
+    if err != nil {
+        <p style="color: red;">{ err.Error() }</p>
+    }
+    </div>
 }
 
 templ stopPauseButtons(err error) {
@@ -61,7 +101,7 @@ templ resumeStopButtons(err error) {
 }
 
 // nightTime: 0AM-6AM
-// if it's night time on the client side when stopping the session,
+// If user started session at nightTime and stopped before noon,
 // they will be asked to choose which day to assign the session to
 templ stopConfirmDialog(err error, nightTime bool) {
     <div id="stopConfirmDiv">
@@ -72,10 +112,10 @@ templ stopConfirmDialog(err error, nightTime bool) {
 		<button hx-post="/sessions/abort-stop" hx-target="#stopConfirmDiv"hx-swap="outerHTML">Don't stop</button>
 		
         if nightTime {
-            <input type="radio" id="radioYesterday" name="assignYesterdayGroup" value="yesterday">
-            <label for="radioYesterday">assign yesterday</label><br>
+            <br/><input type="radio" id="radioYesterday" name="assignYesterdayGroup" value="yesterday">
+            <label for="radioYesterday">assign yesterday</label><br/>
             <input type="radio" id="radioToday" name="assignYesterdayGroup" value="today">
-            <label for="radioToday">assign today</label><br>
+            <label for="radioToday">assign today</label>
         }
         if err != nil {
             <p id="errorMessage" style="color: red;">{ err.Error() }</p>

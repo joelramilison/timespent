@@ -13,7 +13,7 @@ import (
 )
 
 const getNewestSession = `-- name: GetNewestSession :one
-SELECT id, created_at, updated_at, started_at, ended_at, pause_seconds, user_id, paused_at, assign_to_day_before_start FROM sessions
+SELECT id, created_at, updated_at, started_at, ended_at, pause_seconds, user_id, paused_at, assign_to_day_before_start, activity_id FROM sessions
 WHERE user_id = $1
 ORDER BY started_at DESC
 LIMIT 1
@@ -32,6 +32,7 @@ func (q *Queries) GetNewestSession(ctx context.Context, userID uuid.UUID) (Sessi
 		&i.UserID,
 		&i.PausedAt,
 		&i.AssignToDayBeforeStart,
+		&i.ActivityID,
 	)
 	return i, err
 }
@@ -74,20 +75,22 @@ INSERT INTO sessions(
     created_at,
     updated_at,
     started_at,
-    user_id
+    user_id,
+    activity_id
 )
 VALUES (
-    $1, NOW(), NOW(), NOW(), $2
+    $1, NOW(), NOW(), NOW(), $2, $3
 )
 `
 
 type StartSessionParams struct {
-	ID     uuid.UUID
-	UserID uuid.UUID
+	ID         uuid.UUID
+	UserID     uuid.UUID
+	ActivityID uuid.NullUUID
 }
 
 func (q *Queries) StartSession(ctx context.Context, arg StartSessionParams) error {
-	_, err := q.db.ExecContext(ctx, startSession, arg.ID, arg.UserID)
+	_, err := q.db.ExecContext(ctx, startSession, arg.ID, arg.UserID, arg.ActivityID)
 	return err
 }
 

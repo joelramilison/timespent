@@ -11,6 +11,15 @@ import (
 	"github.com/google/uuid"
 )
 
+type Activity struct {
+	ID        uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Name      string
+	UserID    uuid.UUID
+	ColorCode string
+}
+
 type Session struct {
 	ID                     uuid.UUID
 	CreatedAt              time.Time
@@ -21,6 +30,7 @@ type Session struct {
 	UserID                 uuid.UUID
 	PausedAt               sql.NullTime
 	AssignToDayBeforeStart sql.NullBool
+	ActivityID             uuid.NullUUID
 }
 
 type User struct {

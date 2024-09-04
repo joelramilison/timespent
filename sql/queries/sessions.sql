@@ -10,10 +10,11 @@ INSERT INTO sessions(
     created_at,
     updated_at,
     started_at,
-    user_id
+    user_id,
+    activity_id
 )
 VALUES (
-    $1, NOW(), NOW(), NOW(), $2
+    $1, NOW(), NOW(), NOW(), $2, $3
 );
 
 -- name: StopSession :exec
