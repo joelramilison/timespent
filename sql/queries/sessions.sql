@@ -11,15 +11,16 @@ INSERT INTO sessions(
     updated_at,
     started_at,
     user_id,
-    activity_id
+    activity_id,
+    started_at_local_date
 )
 VALUES (
-    $1, NOW(), NOW(), NOW(), $2, $3
+    $1, NOW(), NOW(), NOW(), $2, $3, $4
 );
 
 -- name: StopSession :exec
 UPDATE sessions
-SET updated_at = NOW(), ended_at = NOW(), pause_seconds = $1, paused_at = NULL, assign_to_day_before_start = $2
+SET updated_at = NOW(), ended_at = NOW(), pause_seconds = $1, paused_at = NULL, corresponding_date = $2
 WHERE id = $3;
 
 -- name: PauseSession :exec
@@ -30,9 +31,4 @@ WHERE id = $2;
 -- name: ResumeSession :exec
 UPDATE sessions
 SET updated_at = NOW(), paused_at = NULL, pause_seconds = $1
-WHERE id = $2;
-
--- name: UpdateDayReassign :exec
-UPDATE sessions
-SET assign_to_day_before_start = $1, created_at = NOW()
 WHERE id = $2;

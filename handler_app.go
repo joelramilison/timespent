@@ -16,7 +16,8 @@ const (
 
 func (cfg *apiConfig) appHandler(w http.ResponseWriter, req *http.Request, user database.User) {
 
-	// depending on mode of request, return either the whole page or just the body for a hx-swap
+	/* depending on HTMX vs. normal browser request,
+	return either the whole page or just the body for a hx-swap */
 	showApp := func(appMode int, activity database.Activity, activities []database.Activity) {
 		if req.Header.Get("HX-Request") == "" {
 			app(appMode, activity, activities).Render(req.Context(), w)
@@ -27,6 +28,7 @@ func (cfg *apiConfig) appHandler(w http.ResponseWriter, req *http.Request, user 
 
 	appMode, session := getAppMode(cfg.DB, user, req)
 
+	// if no session currently running
 	if appMode == appModeNothing {
 		activities, err := cfg.DB.GetUserActivities(req.Context(), user.ID)
 		if err != nil {
@@ -35,6 +37,7 @@ func (cfg *apiConfig) appHandler(w http.ResponseWriter, req *http.Request, user 
 			}
 			activities = []database.Activity{}
 		}
+		// 'activities' will populate the activity selector for starting a new session
 		showApp(appMode, database.Activity{}, activities)
 
 	// if appMode == appModePause or appModeRunning

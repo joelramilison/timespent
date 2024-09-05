@@ -47,7 +47,7 @@ templ appBodyInner(appMode int, activity database.Activity, activities []databas
         @resumeStopButtons(nil)
     }
     <div><a href="/" hx-post="/logout" hx-swap="none">Log out</a></div>
-    
+
 }
 
 templ currentActivity(activity string) {
@@ -71,7 +71,8 @@ templ activitySelector(activities []database.Activity) {
 
 templ startButton(err error) {
     <div>
-    <button hx-post="/sessions/start" hx-swap="outerHTML" hx-target="closest div" hx-include="#activitySelect">Start</button>
+    <button hx-post="/sessions/start" hx-target="closest div" hx-include="#activitySelect"
+    hx-vals="js:{dayOfMonth: new Date().getDate(), month: new Date().getMonth() + 1, year: new Date().getFullYear()}">Start</button>
     if err != nil {
         <p style="color: red;">{ err.Error() }</p>
     }
@@ -107,10 +108,16 @@ templ stopConfirmDialog(err error, nightTime bool) {
     <div id="stopConfirmDiv">
 		<label for="pauseMinutes">pause minutes to subtract:</label>
 		<input type="number" name="pauseMinutes" id="pauseInput" value="0"/>
-		<button hx-post="/sessions/confirm-stop" hx-target="#stopConfirmDiv" hx-swap="outerHTML"
+        if nightTime {
+
+		<button hx-vals='{"askedForAssignChoice": "true"}' hx-post="/sessions/confirm-stop" hx-target="#stopConfirmDiv" hx-swap="outerHTML"
         hx-include="[name='assignYesterdayGroup'], [id='pauseInput']">Stop</button>
+        } else {
+		<button hx-post="/sessions/confirm-stop" hx-vals='{"askedForAssignChoice": "false"}' hx-target="#stopConfirmDiv" hx-swap="outerHTML"
+        hx-include="[name='assignYesterdayGroup'], [id='pauseInput']">Stop</button>
+        }
 		<button hx-post="/sessions/abort-stop" hx-target="#stopConfirmDiv"hx-swap="outerHTML">Don't stop</button>
-		
+
         if nightTime {
             <br/><input type="radio" id="radioYesterday" name="assignYesterdayGroup" value="yesterday">
             <label for="radioYesterday">assign yesterday</label><br/>

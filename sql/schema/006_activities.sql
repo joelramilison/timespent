@@ -1,20 +1,33 @@
 -- +goose Up
-CREATE TABLE activities (
-    id uuid PRIMARY KEY,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    name TEXT NOT NULL,
-    user_id uuid NOT NULL,
-    color_code VARCHAR(6) NOT NULL
-);
 
 ALTER TABLE sessions
-ADD COLUMN activity_id uuid REFERENCES activities(id);
+DROP CONSTRAINT sessions_activity_id_fkey;
+
+ALTER TABLE sessions
+ADD CONSTRAINT fk_activity_of_session
+FOREIGN KEY (activity_id)
+REFERENCES activities (id)
+ON DELETE CASCADE;
+
+
+ALTER TABLE activities
+ADD CONSTRAINT fk_user_of_activity
+FOREIGN KEY (user_id)
+REFERENCES users (id)
+ON DELETE CASCADE;
+
 
 
 -- +goose Down
 
-DROP TABLE activities;
+ALTER TABLE activities
+DROP CONSTRAINT fk_user_of_activity;
 
 ALTER TABLE sessions
-DROP COLUMN activity_id;
+DROP CONSTRAINT fk_activity_of_session;
+
+ALTER TABLE sessions
+ADD CONSTRAINT sessions_activity_id_fkey
+FOREIGN KEY (activity_id)
+REFERENCES activities (id);
+

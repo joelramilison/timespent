@@ -242,7 +242,7 @@ func startButton(err error) templ.Component {
 			templ_7745c5c3_Var8 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div><button hx-post=\"/sessions/start\" hx-swap=\"outerHTML\" hx-target=\"closest div\" hx-include=\"#activitySelect\">Start</button> ")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div><button hx-post=\"/sessions/start\" hx-target=\"closest div\" hx-include=\"#activitySelect\" hx-vals=\"js:{dayOfMonth: new Date().getDate(), month: new Date().getMonth() + 1, year: new Date().getFullYear()}\">Start</button> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -254,7 +254,7 @@ func startButton(err error) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(err.Error())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app.templ`, Line: 76, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app.templ`, Line: 77, Col: 44}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -303,7 +303,7 @@ func stopPauseButtons(err error) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(err.Error())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app.templ`, Line: 87, Col: 49}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app.templ`, Line: 88, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -352,7 +352,7 @@ func resumeStopButtons(err error) templ.Component {
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(err.Error())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app.templ`, Line: 98, Col: 49}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app.templ`, Line: 99, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -392,7 +392,22 @@ func stopConfirmDialog(err error, nightTime bool) templ.Component {
 			templ_7745c5c3_Var14 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"stopConfirmDiv\"><label for=\"pauseMinutes\">pause minutes to subtract:</label> <input type=\"number\" name=\"pauseMinutes\" id=\"pauseInput\" value=\"0\"> <button hx-post=\"/sessions/confirm-stop\" hx-target=\"#stopConfirmDiv\" hx-swap=\"outerHTML\" hx-include=\"[name=&#39;assignYesterdayGroup&#39;], [id=&#39;pauseInput&#39;]\">Stop</button> <button hx-post=\"/sessions/abort-stop\" hx-target=\"#stopConfirmDiv\" hx-swap=\"outerHTML\">Don't stop</button> ")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"stopConfirmDiv\"><label for=\"pauseMinutes\">pause minutes to subtract:</label> <input type=\"number\" name=\"pauseMinutes\" id=\"pauseInput\" value=\"0\"> ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if nightTime {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button hx-vals=\"{&#34;askedForAssignChoice&#34;: &#34;true&#34;}\" hx-post=\"/sessions/confirm-stop\" hx-target=\"#stopConfirmDiv\" hx-swap=\"outerHTML\" hx-include=\"[name=&#39;assignYesterdayGroup&#39;], [id=&#39;pauseInput&#39;]\">Stop</button> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		} else {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button hx-post=\"/sessions/confirm-stop\" hx-vals=\"{&#34;askedForAssignChoice&#34;: &#34;false&#34;}\" hx-target=\"#stopConfirmDiv\" hx-swap=\"outerHTML\" hx-include=\"[name=&#39;assignYesterdayGroup&#39;], [id=&#39;pauseInput&#39;]\">Stop</button> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button hx-post=\"/sessions/abort-stop\" hx-target=\"#stopConfirmDiv\" hx-swap=\"outerHTML\">Don't stop</button> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -410,7 +425,7 @@ func stopConfirmDialog(err error, nightTime bool) templ.Component {
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(err.Error())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app.templ`, Line: 121, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app.templ`, Line: 128, Col: 66}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {

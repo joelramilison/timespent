@@ -21,26 +21,26 @@ type Activity struct {
 }
 
 type Session struct {
-	ID                     uuid.UUID
-	CreatedAt              time.Time
-	UpdatedAt              time.Time
-	StartedAt              time.Time
-	EndedAt                sql.NullTime
-	PauseSeconds           int32
-	UserID                 uuid.UUID
-	PausedAt               sql.NullTime
-	AssignToDayBeforeStart sql.NullBool
-	ActivityID             uuid.NullUUID
+	ID                 uuid.UUID
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+	StartedAt          time.Time
+	EndedAt            sql.NullTime
+	PauseSeconds       int32
+	UserID             uuid.UUID
+	PausedAt           sql.NullTime
+	CorrespondingDate  sql.NullTime
+	StartedAtLocalDate time.Time
+	ActivityID         uuid.NullUUID
 }
 
 type User struct {
-	ID                       uuid.UUID
-	CreatedAt                time.Time
-	UpdatedAt                time.Time
-	Username                 string
-	PasswordHash             []byte
-	TimeZone                 string
-	SessionIDHash            []byte
-	SessionExpiresAt         sql.NullTime
-	AwaitAssignDecisionUntil sql.NullTime
+	ID               uuid.UUID
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	Username         string
+	PasswordHash     []byte
+	TimeZone         string
+	SessionIDHash    []byte
+	SessionExpiresAt sql.NullTime
 }

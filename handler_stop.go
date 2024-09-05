@@ -20,6 +20,7 @@ func (cfg *apiConfig) stopSessionHandler(w http.ResponseWriter, req *http.Reques
 
 	appMode, _ := getAppMode(cfg.DB, user, req)
 
+	// generalize a function to return an error
 	returnError := func(err error) {
 		if appMode == appModeRunning {
 			sendComponent(w, req, stopPauseButtons(err))
@@ -48,6 +49,7 @@ func (cfg *apiConfig) stopSessionHandler(w http.ResponseWriter, req *http.Reques
 		returnError(errors.New("internal server error, please try again"))
 		return
 	}
+
 	clientHoursString := params.Get("hours")
 
 	if clientHoursString == "" {
@@ -78,18 +80,6 @@ func (cfg *apiConfig) stopSessionHandler(w http.ResponseWriter, req *http.Reques
 		}
 	}
 	askToReassign := ifAskToReassignDay(clientHours, session.StartedAt, time.Now())
-	if askToReassign {
-		err = cfg.DB.UpdateAssignAwait(req.Context(), database.UpdateAssignAwaitParams{
-				ID: user.ID, AwaitAssignDecisionUntil: sql.NullTime{
-					Valid: true, Time: time.Now().Add(time.Duration(30) * time.Minute),
-				},
-		})
-		if err != nil {
-			log.Printf("Database error while trying to update assign await for user %v: %v", user.ID, err)
-			returnError(errors.New("internal server error, please try again"))
-			return
-		}
-	}
 	sendComponent(w, req, stopConfirmDialog(nil, askToReassign))
 		
 }
@@ -108,29 +98,19 @@ func (cfg *apiConfig) confirmSessionStopHandler(w http.ResponseWriter, req *http
 		return
 	}
 
-	askForAssignDecision := user.AwaitAssignDecisionUntil.Valid && user.AwaitAssignDecisionUntil.Time.After(time.Now()) 
+	// Get the pause duration to subtract from the session time
+	inputPauseSeconds, assignYesterdayChoice, askedForAssignDecision, err := extractStopParams(req)
+	if err != nil {
+		sendComponent(w, req, stopConfirmDialog(err, askedForAssignDecision))
+		return
+	}
 
 	// Retrieve from DB
 	session, err := cfg.DB.GetNewestSession(req.Context(), user.ID)
 	if err != nil {
 		log.Printf("error fetching newest session when trying to stop session: %v", err)
-		sendComponent(w, req, stopConfirmDialog(errors.New("internal server error, please try again"), askForAssignDecision))
+		sendComponent(w, req, stopConfirmDialog(errors.New("internal server error, please try again"), askedForAssignDecision))
 		return
-	}
-
-
-	// Get the pause duration to subtract from the session time
-	inputPauseSeconds, assignYesterdayChoice, err := extractStopParams(req, session, askForAssignDecision)
-	if err != nil {
-		sendComponent(w, req, stopConfirmDialog(err, askForAssignDecision))
-		return
-	}
-	assignYesterday := sql.NullBool{Valid: false}
-	if askForAssignDecision {
-		if assignYesterdayChoice == "yesterday" {
-			assignYesterday.Valid = true
-			assignYesterday.Bool = true
-		}
 	}
 
 	// If user is in pause right now, also add the current pause duration to the database
@@ -139,13 +119,36 @@ func (cfg *apiConfig) confirmSessionStopHandler(w http.ResponseWriter, req *http
 		fromCurrentPause = int32(time.Since(session.PausedAt.Time).Seconds())
 	}
 
+	// throw an error if the input pause + the current tracked pause
+	// is longer than the tracked working time
+	durationSinceStart := time.Since(session.StartedAt)
+	totalPause := inputPauseSeconds + session.PauseSeconds + fromCurrentPause
+
+	if durationSinceStart.Seconds() <  float64(totalPause) {
+		sendComponent(w, req, stopConfirmDialog(errors.New("entered pause duration is too high"), askedForAssignDecision))
+		return
+	}
+
+
+	var assignToLocalDate sql.NullTime 
+
+	// set the date depending on whether the user chose to assign the session to yesterday
+	if assignYesterdayChoice == "yesterday" {
+		assignToLocalDate = sql.NullTime{Valid: true, Time: session.StartedAtLocalDate.AddDate(0, 0, -1)}
+	} else {
+		// else: either user chose to assign to yesterday OR they weren't even asked
+		assignToLocalDate = sql.NullTime{Valid: true, Time: session.StartedAtLocalDate}
+	}
+
+	
+
 	// Update changes in DB
 	err = cfg.DB.StopSession(req.Context(), database.StopSessionParams{
 		ID: session.ID,
 		PauseSeconds: inputPauseSeconds + session.PauseSeconds + fromCurrentPause,
-		AssignToDayBeforeStart: assignYesterday})
+		CorrespondingDate: assignToLocalDate,})
 	if err != nil {
-		sendComponent(w, req, stopConfirmDialog(errors.New("internal server error, please try again"), askForAssignDecision))
+		sendComponent(w, req, stopConfirmDialog(errors.New("internal server error, please try again"), askedForAssignDecision))
 		log.Printf("SQL error (func StopSession) while trying to stop session: %v", err)
 		return
 	}
@@ -165,43 +168,50 @@ func (cfg *apiConfig) confirmSessionStopHandler(w http.ResponseWriter, req *http
 
 }
 
-
-func extractStopParams(req *http.Request, session database.Session, askForAssignDecision bool) (int32, string, error) {
+// this function returns askedForAssignchoice even if the user
+// hasn't clicked any radio buttons (instead of returning zero values only)
+func extractStopParams(req *http.Request) (int32, string, bool, error) {
 
 	urlEncodedParams, err := io.ReadAll(req.Body)
 	if err != nil {
 		log.Printf("error while trying to perform io.ReadAll: %v\n", err.Error())
-		return 0, "", errors.New("internal server error, please try again")
+		return 0, "", false, errors.New("internal server error, please try again")
 	}
 
 	params, err := url.ParseQuery(string(urlEncodedParams))
 	if err != nil {
 		log.Printf("error while trying to parse query %v\n", string(urlEncodedParams))
-		return 0, "", errors.New("internal server error, please try again")
+		return 0, "", false, errors.New("internal server error, please try again")
 	}
 
 	pauseString := params.Get("pauseMinutes")
 	if pauseString == "" {
 		log.Printf("couldn't get pauseMinutes from stop Confirmation dialog request")
-		return 0, "", errors.New("couldn't process value for pause")
+		return 0, "", false, errors.New("couldn't process value for pause")
 	}
+
+	askedForAssignChoiceString := params.Get("askedForAssignChoice")
+	if askedForAssignChoiceString == "" {
+		log.Printf("couldn't get askedForAssignChoice from stop Confirmation dialog request")
+		return 0, "", false, errors.New("internal server error, please try again")
+	}
+	askedForAssignChoice, err := strconv.ParseBool(askedForAssignChoiceString)
+	if err != nil {
+		log.Printf("couldn't prse askedForAssignChoice from stop Confirmation dialog request into bool")
+		return 0, "", false, errors.New("internal server error, please try again")	
+	}
+	
 	assignYesterdayChoice := params.Get("assignYesterdayGroup")
-	if askForAssignDecision && assignYesterdayChoice == "" {
-		return 0, "", errors.New("you need to click one of the radio buttons")
+	if askedForAssignChoice && assignYesterdayChoice == "" {
+		return 0, "", askedForAssignChoice, errors.New("you need to click one of the radio buttons")
 	}
 
 	pauseMinutesFloat, err := strconv.ParseFloat(pauseString, 64)
 	if err != nil {
-		return 0, "", errors.New("pause minutes input needs to be a number")
+		return 0, "", askedForAssignChoice, errors.New("pause minutes input needs to be a number")
 	}
 	pauseSeconds := int32(math.Round(pauseMinutesFloat * 60))
-
-	durationSinceStart := time.Since(session.StartedAt)
-	if durationSinceStart < time.Duration(pauseSeconds) * time.Second {
-		return 0, "", errors.New("error: pause longer than session")
-	}
-
-	return pauseSeconds, assignYesterdayChoice, nil
+	return pauseSeconds, assignYesterdayChoice, askedForAssignChoice, nil
 
 }
 

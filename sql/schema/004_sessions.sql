@@ -1,7 +1,13 @@
 -- +goose Up
 ALTER TABLE sessions 
-ADD COLUMN assign_to_day_before_start boolean;
+ADD COLUMN corresponding_date date;
+
+ALTER TABLE sessions
+ADD COLUMN started_at_local_date date NOT NULL;
 -- +goose Down
 
 ALTER TABLE sessions
-DROP COLUMN assign_to_day_before_start;
+DROP COLUMN corresponding_date;
+
+ALTER TABLE sessions
+DROP COLUMN started_at_local_date;

@@ -2,11 +2,10 @@ package main
 
 import (
 	"errors"
-	"io"
 	"log"
 	"net/http"
-	"net/url"
-
+	"strconv"
+	"time"
 	"github.com/google/uuid"
 	"github.com/joelramilison/timespent/internal/database"
 )
@@ -25,6 +24,24 @@ func (cfg *apiConfig) startSessionHandler(w http.ResponseWriter, req *http.Reque
 		return
 	}
 
+	// get parameters from HTTP request
+	params, err := extractAndVerifyParams(req, []string{"dayOfMonth", "month", "year", "activitySelect"})
+	if err != nil {
+		log.Printf("user %v wanted to start session but coulnd't extract params: %v", user.ID, err)
+		sendComponent(w, req, startButton(errors.New("internal server error, please try again")))
+		return
+	}
+
+	// compile the time object for the local (client-side) date when the session started
+	localDateTime, err := dataParamsToTime(params["year"], params["dayOfMonth"], params["month"])
+	if err != nil {
+
+		log.Printf("user %v wanted to start session but coulnd't process date: %v", user.ID, err)
+		sendComponent(w, req, startButton(errors.New("internal server error, please try again")))
+		return
+	}
+
+
 	activities, err := cfg.DB.GetUserActivities(req.Context(), user.ID)
 	if err != nil {
 		log.Printf("couldn't get activities list for user %v, err: %v\n", user.ID, err)
@@ -36,14 +53,13 @@ func (cfg *apiConfig) startSessionHandler(w http.ResponseWriter, req *http.Reque
 		sendComponent(w, req, startButton(errors.New("first, create an activity to track")))
 		return
 	}
-	reducedSelected, err := getSelectedActivity(req)
-	if err != nil {
-		sendComponent(w, req, startButton(err))
-		return
-	}
+	
+	// reduced: whitespace removed from the name to make it viable for HTML
+	reducedSelected := params["activitySelect"]
 	var activityMatch database.Activity
 	var found bool
 
+	// find out which activity the user selected for this session
 	for _, activity := range activities {
 		if reduceActivity(activity.Name) == reducedSelected {
 			activityMatch = activity
@@ -60,6 +76,7 @@ func (cfg *apiConfig) startSessionHandler(w http.ResponseWriter, req *http.Reque
 	// Create DB entry
 	err = cfg.DB.StartSession(req.Context(), database.StartSessionParams{
 		ID: uuid.New(), UserID: user.ID, ActivityID: uuid.NullUUID{UUID: activityMatch.ID, Valid: true},
+		StartedAtLocalDate: localDateTime,
 	})
 	if err != nil {
 		log.Printf("error: couldn't start session, query failed: %v", err)
@@ -76,25 +93,25 @@ func (cfg *apiConfig) startSessionHandler(w http.ResponseWriter, req *http.Reque
 	
 }
 
+// takes string parameters to compile a final time.Time date object
+func dataParamsToTime(year, dayOfMonth, month string) (time.Time, error) {
 
-func getSelectedActivity(req *http.Request) (string, error) {
-
-	urlEncodedParams, err := io.ReadAll(req.Body)
+	// final string: YYYY-MM-DD
+	
+	if dayOfMonthInt, err := strconv.Atoi(dayOfMonth); err != nil {
+		return time.Time{}, err
+	} else if dayOfMonthInt < 10 {
+		dayOfMonth = "0" + dayOfMonth
+	}	
+	if monthInt, err := strconv.Atoi(month); err != nil {
+		return time.Time{}, err
+	} else if monthInt < 10 {
+		month = "0" + month
+	}
+	dateString := year + "-" + month + "-" + dayOfMonth
+	localDateTime, err := time.Parse(time.DateOnly, dateString)
 	if err != nil {
-		log.Printf("error while trying to perform io.ReadAll: %v\n", err.Error())
-		return "", errors.New("internal server error, please try again")
+		return time.Time{}, err
 	}
-	requestValues, err := url.ParseQuery(string(urlEncodedParams))
-	if err != nil {
-		log.Printf("error while trying to parse query %v\n", string(urlEncodedParams))
-		return  "", errors.New("internal server error, please try again")
-	}
-
-	reducedActivity := requestValues.Get("activitySelect")
-	if reducedActivity == "" {
-		log.Printf("user has activities but no selected activity found for start")
-		return  "", errors.New("internal server error, please try again")
-	}
-	return reducedActivity, nil
-
+	return localDateTime, nil
 }

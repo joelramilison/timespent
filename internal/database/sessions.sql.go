@@ -8,12 +8,13 @@ package database
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
 
 const getNewestSession = `-- name: GetNewestSession :one
-SELECT id, created_at, updated_at, started_at, ended_at, pause_seconds, user_id, paused_at, assign_to_day_before_start, activity_id FROM sessions
+SELECT id, created_at, updated_at, started_at, ended_at, pause_seconds, user_id, paused_at, corresponding_date, started_at_local_date, activity_id FROM sessions
 WHERE user_id = $1
 ORDER BY started_at DESC
 LIMIT 1
@@ -31,7 +32,8 @@ func (q *Queries) GetNewestSession(ctx context.Context, userID uuid.UUID) (Sessi
 		&i.PauseSeconds,
 		&i.UserID,
 		&i.PausedAt,
-		&i.AssignToDayBeforeStart,
+		&i.CorrespondingDate,
+		&i.StartedAtLocalDate,
 		&i.ActivityID,
 	)
 	return i, err
@@ -76,53 +78,44 @@ INSERT INTO sessions(
     updated_at,
     started_at,
     user_id,
-    activity_id
+    activity_id,
+    started_at_local_date
 )
 VALUES (
-    $1, NOW(), NOW(), NOW(), $2, $3
+    $1, NOW(), NOW(), NOW(), $2, $3, $4
 )
 `
 
 type StartSessionParams struct {
-	ID         uuid.UUID
-	UserID     uuid.UUID
-	ActivityID uuid.NullUUID
+	ID                 uuid.UUID
+	UserID             uuid.UUID
+	ActivityID         uuid.NullUUID
+	StartedAtLocalDate time.Time
 }
 
 func (q *Queries) StartSession(ctx context.Context, arg StartSessionParams) error {
-	_, err := q.db.ExecContext(ctx, startSession, arg.ID, arg.UserID, arg.ActivityID)
+	_, err := q.db.ExecContext(ctx, startSession,
+		arg.ID,
+		arg.UserID,
+		arg.ActivityID,
+		arg.StartedAtLocalDate,
+	)
 	return err
 }
 
 const stopSession = `-- name: StopSession :exec
 UPDATE sessions
-SET updated_at = NOW(), ended_at = NOW(), pause_seconds = $1, paused_at = NULL, assign_to_day_before_start = $2
+SET updated_at = NOW(), ended_at = NOW(), pause_seconds = $1, paused_at = NULL, corresponding_date = $2
 WHERE id = $3
 `
 
 type StopSessionParams struct {
-	PauseSeconds           int32
-	AssignToDayBeforeStart sql.NullBool
-	ID                     uuid.UUID
+	PauseSeconds      int32
+	CorrespondingDate sql.NullTime
+	ID                uuid.UUID
 }
 
 func (q *Queries) StopSession(ctx context.Context, arg StopSessionParams) error {
-	_, err := q.db.ExecContext(ctx, stopSession, arg.PauseSeconds, arg.AssignToDayBeforeStart, arg.ID)
-	return err
-}
-
-const updateDayReassign = `-- name: UpdateDayReassign :exec
-UPDATE sessions
-SET assign_to_day_before_start = $1, created_at = NOW()
-WHERE id = $2
-`
-
-type UpdateDayReassignParams struct {
-	AssignToDayBeforeStart sql.NullBool
-	ID                     uuid.UUID
-}
-
-func (q *Queries) UpdateDayReassign(ctx context.Context, arg UpdateDayReassignParams) error {
-	_, err := q.db.ExecContext(ctx, updateDayReassign, arg.AssignToDayBeforeStart, arg.ID)
+	_, err := q.db.ExecContext(ctx, stopSession, arg.PauseSeconds, arg.CorrespondingDate, arg.ID)
 	return err
 }

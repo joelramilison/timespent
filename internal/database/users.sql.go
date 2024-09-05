@@ -17,7 +17,7 @@ INSERT INTO users (id, username, created_at, updated_at, password_hash, time_zon
 VALUES (
     $1, $2, NOW(), NOW(), $3, $4, $5, $6
 )
-RETURNING id, created_at, updated_at, username, password_hash, time_zone, session_id_hash, session_expires_at, await_assign_decision_until
+RETURNING id, created_at, updated_at, username, password_hash, time_zone, session_id_hash, session_expires_at
 `
 
 type CreateUserParams struct {
@@ -42,7 +42,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, created_at, updated_at, username, password_hash, time_zone, session_id_hash, session_expires_at, await_assign_decision_until FROM users
+SELECT id, created_at, updated_at, username, password_hash, time_zone, session_id_hash, session_expires_at FROM users
 WHERE id = $1
 `
 
@@ -58,13 +58,12 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.TimeZone,
 		&i.SessionIDHash,
 		&i.SessionExpiresAt,
-		&i.AwaitAssignDecisionUntil,
 	)
 	return i, err
 }
 
 const getUserbyName = `-- name: GetUserbyName :one
-SELECT id, created_at, updated_at, username, password_hash, time_zone, session_id_hash, session_expires_at, await_assign_decision_until FROM users
+SELECT id, created_at, updated_at, username, password_hash, time_zone, session_id_hash, session_expires_at FROM users
 WHERE username = $1
 `
 
@@ -80,7 +79,6 @@ func (q *Queries) GetUserbyName(ctx context.Context, username string) (User, err
 		&i.TimeZone,
 		&i.SessionIDHash,
 		&i.SessionExpiresAt,
-		&i.AwaitAssignDecisionUntil,
 	)
 	return i, err
 }
@@ -93,22 +91,6 @@ WHERE id = $1
 
 func (q *Queries) LogUserOut(ctx context.Context, id uuid.UUID) error {
 	_, err := q.db.ExecContext(ctx, logUserOut, id)
-	return err
-}
-
-const updateAssignAwait = `-- name: UpdateAssignAwait :exec
-UPDATE users
-SET updated_at = NOW(), await_assign_decision_until = $1
-WHERE id = $2
-`
-
-type UpdateAssignAwaitParams struct {
-	AwaitAssignDecisionUntil sql.NullTime
-	ID                       uuid.UUID
-}
-
-func (q *Queries) UpdateAssignAwait(ctx context.Context, arg UpdateAssignAwaitParams) error {
-	_, err := q.db.ExecContext(ctx, updateAssignAwait, arg.AwaitAssignDecisionUntil, arg.ID)
 	return err
 }
 

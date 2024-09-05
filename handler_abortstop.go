@@ -15,6 +15,7 @@ func (cfg *apiConfig) abortStopHandler(w http.ResponseWriter, req *http.Request,
 	} else if appMode == appModePaused {
 		templ.Handler(resumeStopButtons(nil)).ServeHTTP(w, req)
 	} else {
+		
 		log.Printf("appMode was neither running nor paused when aborting stop")
 		w.Header().Add("HX-Redirect", "/")
 		w.WriteHeader(302)
