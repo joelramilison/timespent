@@ -31,9 +31,79 @@
     src: url('../fonts/pt-serif-v18-latin-700italic.woff2') format('woff2'); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
   }
 
-  body {
+  body, input[type='text'], input[type='password'] {
     font-family: 'PT Serif';
-    opacity: 0;
-    transition: opacity 2s;
-    -webkit-transition: opacity 2s; /* Safari */
+    font-size: 20px;
   }
+  body {
+    opacity: 0;
+      transition: opacity 2s;
+      -webkit-transition: opacity 2s; /* Safari */
+  }
+  
+  .green {
+      color: limegreen;
+  }
+  .red {
+      color: red;
+  }
+  .black {
+      color: black;
+  }
+  #mainContainer {
+    max-width: 960;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+    justify-content: flex-start;
+  }
+  
+  input[type='text'], input[type='password'] {
+    border: none;
+    border-bottom: 2px solid black;
+    text-align: center;
+    flex: 1
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: 0px;
+  }
+  
+  button, input[type='submit'] {
+    font-size: 20px;
+    background-color: transparent;
+    border-radius: 50px;
+    border: solid 2px black;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    color: black;
+    margin-bottom: 20px;
+    
+  }
+  
+  button:hover, input[type='submit']:hover {
+    background-color: rgb(241, 241, 241);
+
+  }
+  
+  .loginHint {
+    font-size: 16px;
+    margin-top: auto;
+  }
+  
+  #loginH1 {
+    font-size: 28px;
+    margin-bottom: 35px;
+  }
+  
+ h1 {
+  margin-bottom: 50px;
+ }

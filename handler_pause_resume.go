@@ -11,6 +11,7 @@ import (
 )
 
 func (cfg *apiConfig) pauseSessionHandler(w http.ResponseWriter, req *http.Request, user database.User) {
+	
 
 	session, err := cfg.DB.GetNewestSession(req.Context(), user.ID)
 	if err != nil {

@@ -23,12 +23,14 @@ templ app(appMode int, activity database.Activity, activities []database.Activit
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body onload="document.body.style.opacity='1';">
+    
     @appBodyInner(appMode, activity, activities)
+
     </body>
     </html>
 }
 templ appBodyInner(appMode int, activity database.Activity, activities []database.Activity) {
-    <h2>Welcome to TimeStop, you are logged in!</h2>
+    <div class="mainContainer">
     <div id="activity">
     if appMode == appModeNothing {
         @activitySelector(activities)
@@ -36,7 +38,7 @@ templ appBodyInner(appMode int, activity database.Activity, activities []databas
         @currentActivity(activity.Name)
     }
     </div>
-    <div hx-get="/stopwatch" hx-trigger="load, every 1s">00:00:00</div>
+    <div class="stopwatch" hx-get="/stopwatch" hx-trigger="load, every 1s">00:00:00</div>
     if appMode == appModeRunning {
         @stopPauseButtons(nil)
     }
@@ -47,11 +49,14 @@ templ appBodyInner(appMode int, activity database.Activity, activities []databas
         @resumeStopButtons(nil)
     }
     <div><a href="/" hx-post="/logout" hx-swap="none">Log out</a></div>
-
+    </div>
 }
 
 templ currentActivity(activity string) {
-    Current activity:<br/>{ activity }
+    <div id="currentActivityDiv">
+    <p id="currentActivityLabelText">Current activity:</p>
+    <p id="currentActivityActivityText">{ activity }</p>
+    </div>
 }
 
 templ activitySelector(activities []database.Activity) {
@@ -106,7 +111,7 @@ templ resumeStopButtons(err error) {
 // they will be asked to choose which day to assign the session to
 templ stopConfirmDialog(err error, nightTime bool) {
     <div id="stopConfirmDiv">
-		<label for="pauseMinutes">pause minutes to subtract:</label>
+		<label for="pauseMinutes">(optional) Subtract minutes:</label>
 		<input type="number" name="pauseMinutes" id="pauseInput" value="0"/>
         if nightTime {
 

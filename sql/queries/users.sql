@@ -1,7 +1,7 @@
 -- name: CreateUser :exec
-INSERT INTO users (id, username, created_at, updated_at, password_hash, time_zone, session_id_hash, session_expires_at)
+INSERT INTO users (id, username, created_at, updated_at, password_hash, session_id_hash, session_expires_at)
 VALUES (
-    $1, $2, NOW(), NOW(), $3, $4, $5, $6
+    $1, $2, NOW(), NOW(), $3, $4, $5
 )
 RETURNING *;
 

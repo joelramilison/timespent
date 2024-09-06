@@ -24,7 +24,7 @@ func (cfg *apiConfig) registerUserHandler(w http.ResponseWriter, req *http.Reque
 		w.Write([]byte(fmt.Sprintf(`<p style="color: red;">%v</p>`, text)))
 	}
 
-	username, password, timeZone, err := extractRegisterParams(req)
+	username, password, err := extractRegisterParams(req)
 	if err != nil {
 		writeError(err.Error())
 		return
@@ -48,7 +48,7 @@ func (cfg *apiConfig) registerUserHandler(w http.ResponseWriter, req *http.Reque
 
 	// Create user row in database
 	err = cfg.DB.CreateUser(req.Context(), database.CreateUserParams{
-		ID: userID, PasswordHash: hashedPassword, TimeZone: timeZone, Username: username,
+		ID: userID, PasswordHash: hashedPassword, Username: username,
 		SessionIDHash: hashedSessionID, SessionExpiresAt: sessionExpiresAt,
 	})
 	if err != nil {
@@ -71,28 +71,28 @@ func (cfg *apiConfig) registerUserHandler(w http.ResponseWriter, req *http.Reque
 }
 
 // returns: username, password, timeZone, error
-func extractRegisterParams(req *http.Request) (string, string, string, error) {
+func extractRegisterParams(req *http.Request) (string, string, error) {
 
 	urlEncodedParams, err := io.ReadAll(req.Body)
 	if err != nil {
 		log.Printf("error while trying to perform io.ReadAll: %v\n", err.Error())
-		return "", "", "", errors.New("internal server error, please try again")
+		return "", "", errors.New("internal server error, please try again")
 	}
 	formValues, err := url.ParseQuery(string(urlEncodedParams))
 	if err != nil {
 		log.Printf("error while trying to parse query %v\n", string(urlEncodedParams))
-		return "", "", "", errors.New("internal server error, please try again")
+		return "", "", errors.New("internal server error, please try again")
 	}
 	username := formValues.Get("username")
 	password := formValues.Get("password")
 	confirmPassword := formValues.Get("confirmPassword")
-	timeZone := formValues.Get("timezone")
 
-	if username == "" || password == "" || confirmPassword == "" || timeZone == "" {
-		return "", "", "", errors.New("not all fields filled out, please try again")
+	if username == "" || password == "" || confirmPassword == ""  {
+		
+		return "", "",  errors.New("not all fields filled out, please try again")
 	}
 	if password != confirmPassword {
-		return "", "", "", errors.New("password and confirm password don't match, please try again")
+		return "", "", errors.New("password and confirm password don't match, please try again")
 	}
-	return username, password, timeZone, nil
+	return username, password, nil
 }

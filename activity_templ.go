@@ -29,7 +29,7 @@ func activitiesPage(activities []database.Activity) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<button hx-get=\"/\" hx-target=\"body\">Home</button><form id=\"createActivityForm\" hx-post=\"/activities\" hx-target=\"body\"><input type=\"text\" name=\"createActivityName\" id=\"createActivityName\" placeholder=\"Activity name\" autofocus> <input type=\"submit\" value=\"+\"></form><div id=\"activitiesAndErrMsgDiv\"><p>Your activities:</p></div><button id=\"editButton\" hx-post=\"/activities/edit\" hx-target=\"#activitiesListDiv\">Edit</button><div id=\"activitiesListDiv\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"mainContainer\"><button hx-get=\"/\" hx-target=\"body\">Home</button><form id=\"createActivityForm\" hx-post=\"/activities\" hx-target=\"body\"><input type=\"text\" name=\"createActivityName\" id=\"createActivityName\" placeholder=\"Activity name\" autofocus> <input type=\"submit\" value=\"+\"></form><div id=\"activitiesAndErrMsgDiv\"><p>Your activities:</p></div><button id=\"editButton\" hx-post=\"/activities/edit\" hx-target=\"#activitiesListDiv\"><img src=\"assets/edit_icon.png\" id=\"editIcon\"></button><div id=\"activitiesListDiv\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -62,7 +62,7 @@ func activitiesPage(activities []database.Activity) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -128,14 +128,14 @@ func editList(activities []database.Activity) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		for _, activity := range activities {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"editListItemDiv\"><button hx-delete=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"editListItemDiv\"><button class=\"deleteListItemButton\" hx-delete=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs("/activities/" + activity.ID.String())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `activity.templ`, Line: 40, Col: 69}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `activity.templ`, Line: 40, Col: 98}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {

@@ -13,18 +13,17 @@ import (
 )
 
 const createUser = `-- name: CreateUser :exec
-INSERT INTO users (id, username, created_at, updated_at, password_hash, time_zone, session_id_hash, session_expires_at)
+INSERT INTO users (id, username, created_at, updated_at, password_hash, session_id_hash, session_expires_at)
 VALUES (
-    $1, $2, NOW(), NOW(), $3, $4, $5, $6
+    $1, $2, NOW(), NOW(), $3, $4, $5
 )
-RETURNING id, created_at, updated_at, username, password_hash, time_zone, session_id_hash, session_expires_at
+RETURNING id, created_at, updated_at, username, password_hash, session_id_hash, session_expires_at
 `
 
 type CreateUserParams struct {
 	ID               uuid.UUID
 	Username         string
 	PasswordHash     []byte
-	TimeZone         string
 	SessionIDHash    []byte
 	SessionExpiresAt sql.NullTime
 }
@@ -34,7 +33,6 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 		arg.ID,
 		arg.Username,
 		arg.PasswordHash,
-		arg.TimeZone,
 		arg.SessionIDHash,
 		arg.SessionExpiresAt,
 	)
@@ -42,7 +40,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, created_at, updated_at, username, password_hash, time_zone, session_id_hash, session_expires_at FROM users
+SELECT id, created_at, updated_at, username, password_hash, session_id_hash, session_expires_at FROM users
 WHERE id = $1
 `
 
@@ -55,7 +53,6 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.UpdatedAt,
 		&i.Username,
 		&i.PasswordHash,
-		&i.TimeZone,
 		&i.SessionIDHash,
 		&i.SessionExpiresAt,
 	)
@@ -63,7 +60,7 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 }
 
 const getUserbyName = `-- name: GetUserbyName :one
-SELECT id, created_at, updated_at, username, password_hash, time_zone, session_id_hash, session_expires_at FROM users
+SELECT id, created_at, updated_at, username, password_hash, session_id_hash, session_expires_at FROM users
 WHERE username = $1
 `
 
@@ -76,7 +73,6 @@ func (q *Queries) GetUserbyName(ctx context.Context, username string) (User, err
 		&i.UpdatedAt,
 		&i.Username,
 		&i.PasswordHash,
-		&i.TimeZone,
 		&i.SessionIDHash,
 		&i.SessionExpiresAt,
 	)

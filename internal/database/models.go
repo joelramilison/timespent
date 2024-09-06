@@ -40,7 +40,6 @@ type User struct {
 	UpdatedAt        time.Time
 	Username         string
 	PasswordHash     []byte
-	TimeZone         string
 	SessionIDHash    []byte
 	SessionExpiresAt sql.NullTime
 }

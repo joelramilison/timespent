@@ -4,7 +4,7 @@ import "github.com/joelramilison/timespent/internal/database"
 
 // only body because it's called in using hx-boost
 templ activitiesPage(activities []database.Activity) {
-
+    <div class="mainContainer">
     <button hx-get="/" hx-target="body">Home</button>
    <form id="createActivityForm" hx-post="/activities" hx-target="body">
    <input type="text" name="createActivityName" id="createActivityName" placeholder="Activity name" autofocus/>
@@ -13,7 +13,7 @@ templ activitiesPage(activities []database.Activity) {
    <div id="activitiesAndErrMsgDiv">
    <p>Your activities:</p>
    </div>
-   <button id="editButton" hx-post="/activities/edit" hx-target="#activitiesListDiv">Edit</button>
+   <button id="editButton" hx-post="/activities/edit" hx-target="#activitiesListDiv"><img src="assets/edit_icon.png" id="editIcon"/></button>
    <div id="activitiesListDiv">
    if len(activities) > 0 {
    <ul>
@@ -23,7 +23,7 @@ templ activitiesPage(activities []database.Activity) {
     </ul>
    }
    </div>
-   
+    </div>
 }
 
 templ confirmDeleteFormAndInfo(activityID string) {
@@ -37,7 +37,7 @@ templ confirmDeleteFormAndInfo(activityID string) {
 templ editList(activities []database.Activity) {
     for _, activity := range activities {
             <div class="editListItemDiv">
-            <button hx-delete={ "/activities/" + activity.ID.String() } hx-target="#activitiesAndErrMsgDiv">Delete</button>
+            <button class="deleteListItemButton" hx-delete={ "/activities/" + activity.ID.String() } hx-target="#activitiesAndErrMsgDiv">Delete</button>
             <p class="editListItemText">{ activity.Name }</p>
             </div>
         }
