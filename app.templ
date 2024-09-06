@@ -75,11 +75,11 @@ templ activitySelector(activities []database.Activity) {
 }
 
 templ startButton(err error) {
-    <div>
+    <div id="startButtonDiv">
     <button hx-post="/sessions/start" hx-target="closest div" hx-include="#activitySelect"
     hx-vals="js:{dayOfMonth: new Date().getDate(), month: new Date().getMonth() + 1, year: new Date().getFullYear()}">Start</button>
     if err != nil {
-        <p style="color: red;">{ err.Error() }</p>
+        <p class="errorMsg">{ err.Error() }</p>
     }
     </div>
 }
@@ -90,7 +90,7 @@ templ stopPauseButtons(err error) {
     <button hx-post="/sessions/stop" hx-swap="outerHTML" hx-target="#stopPauseDiv"
      hx-vals="js:{hours: new Date().getHours()}">Stop</button>
     if err != nil {
-        <br/><p style="color: red;">{ err.Error() }</p>
+        <br/><p class="errorMsg">{ err.Error() }</p>
     }
     </div>
 }
@@ -101,7 +101,7 @@ templ resumeStopButtons(err error) {
     <button hx-post="/sessions/stop" hx-swap="outerHTML" hx-target="#resumeStopDiv"
      hx-vals="js:{hours: new Date().getHours()}">Stop</button>
      if err != nil {
-        <br/><p style="color: red;">{ err.Error() }</p>
+        <br/><p class="errorMsg">{ err.Error() }</p>
     }
     </div>
 }
@@ -130,7 +130,7 @@ templ stopConfirmDialog(err error, nightTime bool) {
             <label for="radioToday">assign today</label>
         }
         if err != nil {
-            <p id="errorMessage" style="color: red;">{ err.Error() }</p>
+            <p class="errorMsg">{ err.Error() }</p>
         }
 	</div>
 }

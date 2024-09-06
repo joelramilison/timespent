@@ -49,7 +49,7 @@ func getAppMode(db *database.Queries, user database.User, req *http.Request) (in
 
 
 // returns error if an error occured or if the value for at least one key is "" 
-func extractAndVerifyParams(req *http.Request, keys []string) (map[string]string, error) {
+func extractAndVerifyParams(req *http.Request, keys []string, includeNotAllFieldsFileldOuterror bool) (map[string]string, error) {
 
 	result := map[string]string{}
 
@@ -65,7 +65,7 @@ func extractAndVerifyParams(req *http.Request, keys []string) (map[string]string
 	}
 	
 	for _, key := range keys {
-		if result[key] = params.Get(key); result[key] == "" {
+		if result[key] = params.Get(key); result[key] == "" && includeNotAllFieldsFileldOuterror {
 			return map[string]string{}, errors.New("not all fields were filled out")
 		}
 		

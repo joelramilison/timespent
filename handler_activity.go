@@ -39,7 +39,7 @@ func (cfg *apiConfig) createActivityHandler(w http.ResponseWriter, req *http.Req
 	}
 
 	// process activity name input field
-	params, err := extractAndVerifyParams(req, []string{"createActivityName"})
+	params, err := extractAndVerifyParams(req, []string{"createActivityName"}, true)
 	inputName := params["createActivityName"]
 	if err != nil {
 		writeError(err.Error())
@@ -157,7 +157,7 @@ func (cfg *apiConfig) confirmDeleteActivityHandler(w http.ResponseWriter, req *h
 	}
 
 	// check if user has typed the name of the activity correctly to confirm the action
-	params, err := extractAndVerifyParams(req, []string{"confirmDeleteInput"})
+	params, err := extractAndVerifyParams(req, []string{"confirmDeleteInput"}, true)
 	if err != nil {
 		writeError(err.Error())
 		return

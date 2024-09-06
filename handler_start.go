@@ -25,7 +25,7 @@ func (cfg *apiConfig) startSessionHandler(w http.ResponseWriter, req *http.Reque
 	}
 
 	// get parameters from HTTP request
-	params, err := extractAndVerifyParams(req, []string{"dayOfMonth", "month", "year", "activitySelect"})
+	params, err := extractAndVerifyParams(req, []string{"dayOfMonth", "month", "year", "activitySelect"}, false)
 	if err != nil {
 		log.Printf("user %v wanted to start session but coulnd't extract params: %v", user.ID, err)
 		sendComponent(w, req, startButton(errors.New("internal server error, please try again")))
