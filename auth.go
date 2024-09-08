@@ -101,7 +101,7 @@ func createSession(w http.ResponseWriter, userID uuid.UUID) ([]byte, sql.NullTim
 	cookieString := userID.String() + ":" + escapedSessionID
 
 	sessionCookie := http.Cookie{
-		Name: "session_id", Value: cookieString, Expires: sessionExpiresAt, Secure: true,
+		Name: "session_id", Value: cookieString, Expires: sessionExpiresAt, Secure: false,
 		HttpOnly: true,
 	}
 	
