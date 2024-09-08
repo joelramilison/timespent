@@ -68,9 +68,13 @@ templ activitySelector(activities []database.Activity) {
         }
         </select>
     } else {
-        <button hx-get="/activities" hx-target="body" id="createActivityButton">Create activity</button>
+        <button hx-post="/activities-page" hx-target="body" id="createActivityButton" hx-vals="js:{dayOfMonth: new Date().getDate(), month: new Date().getMonth() + 1, year: new Date().getFullYear()}">
+        Create activity</button>
+
     }
-    <button id="activitySettingsButton" hx-get="/activities" hx-target="body"><img id="activitySettingsIcon" src="assets/settings_icon.png"/></button>
+    <button id="activitySettingsButton" hx-post="/activities-page" hx-target="body"
+    hx-vals="js:{dayOfMonth: new Date().getDate(), month: new Date().getMonth() + 1, year: new Date().getFullYear()}">
+    <img id="activitySettingsIcon" src="assets/settings_icon.png"/></button>
     </div>
 }
 

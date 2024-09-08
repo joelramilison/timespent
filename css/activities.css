@@ -46,3 +46,8 @@ ul {
 
     font-size: 18px;
 }
+#dayArrows {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}

@@ -32,3 +32,7 @@ WHERE id = $2;
 UPDATE sessions
 SET updated_at = NOW(), paused_at = NULL, pause_seconds = $1
 WHERE id = $2;
+
+-- name: GetSessionsOnDay :many
+SELECT * FROM sessions
+WHERE user_id = $1 AND corresponding_date = $2;

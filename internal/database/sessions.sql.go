@@ -39,6 +39,51 @@ func (q *Queries) GetNewestSession(ctx context.Context, userID uuid.UUID) (Sessi
 	return i, err
 }
 
+const getSessionsOnDay = `-- name: GetSessionsOnDay :many
+SELECT id, created_at, updated_at, started_at, ended_at, pause_seconds, user_id, paused_at, corresponding_date, started_at_local_date, activity_id FROM sessions
+WHERE user_id = $1 AND corresponding_date = $2
+`
+
+type GetSessionsOnDayParams struct {
+	UserID            uuid.UUID
+	CorrespondingDate sql.NullTime
+}
+
+func (q *Queries) GetSessionsOnDay(ctx context.Context, arg GetSessionsOnDayParams) ([]Session, error) {
+	rows, err := q.db.QueryContext(ctx, getSessionsOnDay, arg.UserID, arg.CorrespondingDate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Session
+	for rows.Next() {
+		var i Session
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.StartedAt,
+			&i.EndedAt,
+			&i.PauseSeconds,
+			&i.UserID,
+			&i.PausedAt,
+			&i.CorrespondingDate,
+			&i.StartedAtLocalDate,
+			&i.ActivityID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const pauseSession = `-- name: PauseSession :exec
 UPDATE sessions
 SET updated_at = NOW(), paused_at = $1

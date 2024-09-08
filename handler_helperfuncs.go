@@ -11,6 +11,8 @@ import (
 	"io"
 	"net/url"
 )
+
+// Renders and sends an HTML component to the user as an HTMX swap response.
 func sendComponent(w http.ResponseWriter, req *http.Request, component templ.Component) {
 
 	buf := bytes.Buffer{}
@@ -72,4 +74,15 @@ func extractAndVerifyParams(req *http.Request, keys []string, includeNotAllField
 	}
 
 	return result, nil
+}
+
+
+// Send an HTTP response with a red-colored HTML error message, performing an HTMX inner swap 
+func writeError(w http.ResponseWriter, errMsg, cssIdentifier string) {
+
+	w.Header().Add("HX-Retarget", cssIdentifier)
+	w.Header().Add("HX-Reswap", "innerHTML")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`<p style="color: red;">` + errMsg + "</p>"))
+
 }

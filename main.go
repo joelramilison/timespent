@@ -40,10 +40,10 @@ func main() {
 	mux.Handle("GET /css/", http.FileServer(http.Dir(".")))
 	mux.Handle("GET /fonts/", http.FileServer(http.Dir(".")))
 	mux.Handle("GET /assets/", http.FileServer(http.Dir(".")))
-	mux.HandleFunc("GET /activities", cfg.middlewareAuth(cfg.activitiesPageHandler))
+	mux.HandleFunc("POST /activities-page", cfg.middlewareAuth(cfg.activitiesPageHandler))
 	mux.HandleFunc("POST /activities", cfg.middlewareAuth(cfg.createActivityHandler))
 	mux.HandleFunc("POST /activities/edit", cfg.middlewareAuth(cfg.activityEditMenuHandler))
-	mux.HandleFunc("DELETE /activities/{id}", cfg.middlewareAuth(cfg.deleteActivityHandler))
+	mux.HandleFunc("POST /activities/delete/{id}", cfg.middlewareAuth(cfg.deleteActivityHandler))
 	mux.HandleFunc("POST /activities/confirm/{id}", cfg.middlewareAuth(cfg.confirmDeleteActivityHandler))
 
 

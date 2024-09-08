@@ -1,24 +1,62 @@
 package main
 
 import "github.com/joelramilison/timespent/internal/database"
+import "time"
+import "strconv"
+import "fmt"
+
+type activityStatistics struct {
+
+    name string
+    duration time.Duration
+}
+func constructDateParams(year, month, day, addDays int) string {
+
+    monthString := strconv.Itoa(month)
+    if month < 10 {
+        monthString = "0" + monthString
+    }
+    dayString := strconv.Itoa(day)
+    if day < 10 {
+        dayString = "0" + dayString
+    }
+
+    date, _ := time.Parse(time.DateOnly, fmt.Sprintf("%v-%v-%v", year, monthString, dayString))
+    date = date.Add(time.Duration(addDays * 24) * time.Hour)
+
+    yearNew, monthNew, dayNew := date.Date()
+    return fmt.Sprintf(`{"dayOfMonth": "%v", "month": "%v", "year": "%v"}`, dayNew, int(monthNew), yearNew)
+
+}
 
 // only body because it's called in using hx-boost
-templ activitiesPage(activities []database.Activity) {
+templ activitiesPage(activityStatistics []activityStatistics, year, month, day int) {
     <div class="mainContainer">
     <button hx-get="/" hx-target="body">Home</button>
-   <form id="createActivityForm" hx-post="/activities" hx-target="body">
+   <form id="createActivityForm" hx-post="/activities" hx-target="body"
+           hx-vals={ constructDateParams(year, month, day, 0) }>
+
    <input type="text" name="createActivityName" id="createActivityName" placeholder="Activity name" autofocus/>
    <input type="submit" value="+"/>
    </form>
    <div id="activitiesAndErrMsgDiv">
-   <p>Your activities:</p>
+   <p>{ fmt.Sprintf("%v - %v - %v", year, month, day)}</p>
    </div>
-   <button id="editButton" hx-post="/activities/edit" hx-target="#activitiesListDiv"><img src="assets/edit_icon.png" id="editIcon"/></button>
+   <div id="dayArrows">
+   <button hx-post="/activities-page" hx-target="body"
+   hx-vals={ constructDateParams(year, month, day, -1) }>-1</button>
+    <button hx-post="/activities-page" hx-target="body"
+   hx-vals={ constructDateParams(year, month, day, +1) }>+1 Day</button>
+
+   </div>
+   <button id="editButton" hx-post="/activities/edit" hx-target="#activitiesListDiv"
+        hx-vals={ constructDateParams(year, month, day, 0) }>
+        <img src="assets/edit_icon.png" id="editIcon"/></button>
    <div id="activitiesListDiv">
-   if len(activities) > 0 {
+   if len(activityStatistics) > 0 {
    <ul>
-        for _, activity := range activities {
-            <li>{ activity.Name }</li>
+        for _, activity := range activityStatistics {
+            <li>{ durationToString(activity.duration) + " – " + activity.name }</li>
         }
     </ul>
    }
@@ -26,21 +64,26 @@ templ activitiesPage(activities []database.Activity) {
     </div>
 }
 
-templ confirmDeleteFormAndInfo(activityID string) {
-    <form id="createActivityForm" hx-swap-oob="outerHTML" hx-post={ "/activities/confirm/" + activityID } hx-target="body">
+templ confirmDeleteFormAndInfo(activityID string, year, month, day int) {
+    <form id="createActivityForm" hx-swap-oob="outerHTML" hx-post={ "/activities/confirm/" + activityID } hx-target="body"
+        hx-vals={ constructDateParams(year, month, day, 0) }>
+
    <input type="text" name="confirmDeleteInput" id="confirmDeleteInput" placeholder="Type here to confirm" autofocus/>
    <input type="submit" value="Confirm"/>
    </form>
    <p id="activitiesAndErrMsgDiv">type the activity name to confirm,<br/>this will remove all the associated sessions</p>
 }
 
-templ editList(activities []database.Activity) {
+templ editList(activities []database.Activity, year, month, day int) {
     for _, activity := range activities {
             <div class="editListItemDiv">
-            <button class="deleteListItemButton" hx-delete={ "/activities/" + activity.ID.String() } hx-target="#activitiesAndErrMsgDiv">Delete</button>
+            <button class="deleteListItemButton" hx-post={ "/activities/delete/" + activity.ID.String() } hx-target="#activitiesAndErrMsgDiv"
+            hx-vals={ constructDateParams(year, month, day, 0) }>Delete</button>
             <p class="editListItemText">{ activity.Name }</p>
             </div>
         }
-    <button id="editButton" hx-get="/activities" hx-swap-oob="outerHTML" hx-target="body">Back</button>
+    <button id="editButton" hx-post="/activities-page" 
+    hx-vals={ constructDateParams(year, month, day, 0) }
+    hx-swap-oob="outerHTML" hx-target="body">Back</button>
 
 }

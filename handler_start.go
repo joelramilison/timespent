@@ -93,7 +93,7 @@ func (cfg *apiConfig) startSessionHandler(w http.ResponseWriter, req *http.Reque
 	
 }
 
-// takes string parameters to compile a final time.Time date object
+// takes string date parameters to compile a final time.Time date object
 func dataParamsToTime(year, dayOfMonth, month string) (time.Time, error) {
 
 	// final string: YYYY-MM-DD
