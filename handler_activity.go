@@ -187,7 +187,7 @@ func (cfg *apiConfig) confirmDeleteActivityHandler(w http.ResponseWriter, req *h
 	}
 
 	// check if user has typed the name of the activity correctly to confirm the action
-	params, err := extractAndVerifyParams(req, []string{"confirmDeleteInput"}, true)
+	params, err := extractAndVerifyParams(req, []string{"confirmDeleteInput", "dayOfMonth", "month", "year"}, true)
 	if err != nil {
 		writeError(w, "internal server error, please try again", "#activitiesAndErrMsgDiv")
 		return
