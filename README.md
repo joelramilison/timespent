@@ -23,4 +23,10 @@ The app is live on [http://217.160.234.15/](http://217.160.234.15/) if you want 
 
 ## How to build
 
-The build is pretty straightforward – clone the repo, make sure you have Go installed, and run ```go build``` in the project folder.
+1. Clone the repo
+
+2. Fire up a [PostgreSQL](https://www.postgresql.org/docs/current/tutorial.html) server and put the DB connection string into a .env file in the root file (call the field ```'DB_CONNECTION_STRING'``` like so: ```DB_CONNECTION_STRING="postgresql://joelramilison:@localhost:5432/timespent?sslmode=disable"```
+
+3. Install [Goose](https://github.com/pressly/goose) and run ```goose postgres [DB connection string without the ?sslmode parameter] up``` from the sql/schema directory.
+
+4. Make sure you have Go installed and run ```go build``` in the project folder.
